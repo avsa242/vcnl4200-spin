@@ -67,6 +67,11 @@ PUB Stop{}
 PUB Defaults{}
 ' Set factory defaults
 
+PUB ALSData{}: als_adc
+' Read Ambient Light Sensor data
+'   Returns: u16
+    readreg(core#ALS_DATA, 2, @als_adc)
+
 PUB DeviceID{}: id
 ' Read device identification
     id := 0
@@ -110,6 +115,10 @@ PUB ProxData{}: prox_adc
 
 PUB Reset{}
 ' Reset the device
+
+PUB WhiteData{}: white_adc
+' Read White light data
+    readreg(core#WHITE_DATA, 2, @white_adc)
 
 PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 ' Read nr_bytes from the device into ptr_buff

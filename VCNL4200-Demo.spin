@@ -29,16 +29,21 @@ OBJ
     cfg     : "core.con.boardcfg.flip"
     ser     : "com.serial.terminal.ansi"
     time    : "time"
-    range   : "sensor.light.vcnl4200.i2c"
+    vcnl    : "sensor.light.vcnl4200.i2c"
 
 PUB Main{}
 
     setup{}
-    range.opmode(range#PROX)
-    ser.dec(range.opmode(-2))
+    vcnl.opmode(vcnl#BOTH)
+    ser.dec(vcnl.opmode(-2))
     repeat
         ser.position(0, 3)
-        ser.hex(range.proxdata, 8)
+        ser.hex(vcnl.proxdata, 8)
+        ser.newline
+        ser.hex(vcnl.alsdata, 8)
+        ser.newline
+        ser.hex(vcnl.whitedata, 8)
+        ser.newline
     repeat
 
 PUB Setup{}
@@ -48,11 +53,11 @@ PUB Setup{}
     ser.clear{}
     ser.strln(string("Serial terminal started"))
 
-    if range.startx(I2C_SCL, I2C_SDA, I2C_HZ)
+    if vcnl.startx(I2C_SCL, I2C_SDA, I2C_HZ)
         ser.strln(string("VCNL4200 driver started"))
     else
         ser.strln(string("VCNL4200 driver failed to start - halting"))
-        range.stop{}
+        vcnl.stop{}
         time.msleep(30)
         ser.stop{}
         repeat
