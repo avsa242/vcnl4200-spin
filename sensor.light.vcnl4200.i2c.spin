@@ -88,6 +88,16 @@ PUB ALSDataRate(rate): curr_rate
     rate := ((curr_rate & core#ALS_IT_MASK) | rate)
     writereg(core#ALS_CONF, 2, @rate)
 
+PUB ALSIntHighThresh(thresh): curr_thr
+' Set ALS interrupt high threshold
+'   Valid values: 0..65535
+    case thresh
+        0..65535:
+            writereg(core#ALS_THDH, 2, @thresh)
+        other:
+            readreg(core#ALS_THDH, 2, @curr_thr)
+            return
+
 PUB ALSIntPersistence(cycles): curr_cyc
 ' Set ALS interrupt persistence, in number of cycles
 '   Valid values:
