@@ -1,5 +1,4 @@
 # vcnl4200-spin
-
 ---------------
 
 This is a P8X32A/Propeller, ~~P2X8C4M64P/Propeller 2~~ driver object for the Vishay VCNL4200 Proximity and Ambient Light sensor.

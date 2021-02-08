@@ -29,7 +29,7 @@ OBJ
     cfg     : "core.con.boardcfg.flip"
     ser     : "com.serial.terminal.ansi"
     time    : "time"
-    range   : "sensor.range.vcnl4200.i2c"
+    range   : "sensor.light.vcnl4200.i2c"
 
 PUB Main{}
 
