@@ -88,6 +88,22 @@ PUB ALSDataRate(rate): curr_rate
     rate := ((curr_rate & core#ALS_IT_MASK) | rate)
     writereg(core#ALS_CONF, 2, @rate)
 
+PUB ALSIntPersistence(cycles): curr_cyc
+' Set ALS interrupt persistence, in number of cycles
+'   Valid values:
+'       1, 2, 4, 8
+'   Any other value polls the chip and returns the current setting
+    readreg(core#ALS_CONF, 2, @curr_cyc)
+    case cycles
+        1, 2, 4, 8:
+            cycles := lookdownz(cycles: 1, 2, 4, 8) << core#ALS_PERS
+        other:
+            curr_cyc := ((curr_cyc >> core#ALS_PERS) & core#ALS_PERS_BITS)
+            return lookupz(curr_cyc: 1, 2, 4, 8)
+
+    cycles := ((curr_cyc & core#ALS_PERS_MASK) | cycles)
+    writereg(core#ALS_CONF, 2, @cycles)
+
 PUB DeviceID{}: id
 ' Read device identification
     id := 0
