@@ -34,7 +34,11 @@ OBJ
 PUB Main{}
 
     setup{}
-    ser.hex(range.deviceid, 8)
+    range.opmode(range#PROX)
+    ser.dec(range.opmode(-2))
+    repeat
+        ser.position(0, 3)
+        ser.hex(range.proxdata, 8)
     repeat
 
 PUB Setup{}

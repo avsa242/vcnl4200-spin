@@ -6,7 +6,7 @@
         Proximity and Ambient Light sensor
     Copyright (c) 2021
     Started Feb 07, 2021
-    Updated Feb 07, 2021
+    Updated Feb 08, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -20,6 +20,13 @@ CON
     DEF_SDA           = 29
     DEF_HZ            = 100_000
     I2C_MAX_FREQ      = core#I2C_MAX_FREQ
+
+' Operating modes
+    SLEEP           = %00
+    ALS             = %01
+    PROX            = %10
+    BOTH            = %11
+    ALS_PROX        = %11
 
 VAR
 
@@ -65,37 +72,76 @@ PUB DeviceID{}: id
     id := 0
     readreg(core#DEVID, 2, @id)
 
+PUB OpMode(mode): curr_mode | alsconf, psconf
+' Set operating mode
+'   Valid values:
+'       SLEEP (0): Power down both ALS+PROX sensors
+'       ALS (1): Ambient Light Sensor active
+'       PROX (2): Proximity sensor active
+'       BOTH (3): Both sensors active
+'   Any other value polls the chip and returns the current setting
+    readreg(core#ALS_CONF, 2, @alsconf)
+    readreg(core#PS_CONF1, 2, @psconf)
+    case mode
+        SLEEP:
+            alsconf := (alsconf & core#ALS_SD_MASK) | core#ALS_OFF
+            psconf := (psconf & core#PS_SD_MASK) | core#PS_OFF
+        ALS:
+            alsconf := (alsconf & core#ALS_SD_MASK)
+            psconf := (psconf & core#PS_SD_MASK) | core#PS_OFF
+        PROX:
+            alsconf := ((alsconf & core#ALS_SD_MASK) | core#ALS_OFF)
+            psconf := (psconf & core#PS_SD_MASK)
+        BOTH, ALS_PROX:
+            alsconf := (alsconf & core#ALS_SD_MASK)
+            psconf := (psconf & core#PS_SD_MASK)
+        other:
+            ' a set bit (1) in either reg shuts the sensor down, but
+            ' 1 is more intuitive as "on", so invert the bits before returning:
+            return (((psconf & 1) << 1) | (alsconf & 1)) ^ %11
+
+    writereg(core#ALS_CONF, 2, @alsconf)
+    writereg(core#PS_CONF1, 2, @psconf)
+
+PUB ProxData{}: prox_adc
+' Read proximity data
+'   Returns: u16
+    readreg(core#PS_DATA, 2, @prox_adc)
+
 PUB Reset{}
 ' Reset the device
 
 PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 ' Read nr_bytes from the device into ptr_buff
     case reg_nr                                 ' validate register num
-        $00..$0E:
-            cmd_pkt.byte[0] := SLAVE_WR
-            cmd_pkt.byte[1] := reg_nr
-            i2c.start{}
-            i2c.wrblock_lsbf(@cmd_pkt, 2)
-            i2c.start{}
-            i2c.wr_byte(SLAVE_RD)
-            i2c.rdblock_lsbf(ptr_buff, nr_bytes, i2c#NAK)
-            i2c.stop{}
+        core#ALS_CONF..core#WHITE_DATA, core#INT_FLAG, core#ID:
         other:                                  ' invalid reg_nr
             return
+
+    cmd_pkt.byte[0] := SLAVE_WR
+    cmd_pkt.byte[1] := reg_nr
+    i2c.start{}
+    i2c.wrblock_lsbf(@cmd_pkt, 2)
+    i2c.start{}
+    i2c.wr_byte(SLAVE_RD)
+    i2c.rdblock_lsbf(ptr_buff, nr_bytes, i2c#NAK)
+    i2c.stop{}
 
 PRI writeReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 ' Write nr_bytes to the device from ptr_buff
     case reg_nr
-        $00..$07:
-            cmd_pkt.byte[0] := SLAVE_WR
-            cmd_pkt.byte[1] := reg_nr
-            i2c.start{}
-            i2c.wrblock_lsbf(@cmd_pkt, 2)
-            i2c.wrblock_lsbf(ptr_buff, nr_bytes)
-            i2c.stop{}
+        core#ALS_CONF:
+            byte[ptr_buff][1] |= core#IDD_RSVD  ' preserve reserved bit
+        core#ALS_THDH..core#PS_THDH:
         other:
             return
 
+    cmd_pkt.byte[0] := SLAVE_WR
+    cmd_pkt.byte[1] := reg_nr
+    i2c.start{}
+    i2c.wrblock_lsbf(@cmd_pkt, 2)
+    i2c.wrblock_lsbf(ptr_buff, nr_bytes)
+    i2c.stop{}
 
 DAT
 {
