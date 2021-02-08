@@ -104,6 +104,20 @@ PUB ALSIntPersistence(cycles): curr_cyc
     cycles := ((curr_cyc & core#ALS_PERS_MASK) | cycles)
     writereg(core#ALS_CONF, 2, @cycles)
 
+PUB ALSIntsEnabled(state): curr_state
+' Enable ALS interrupts
+'   Valid values: TRUE (-1 or 1), FALSE (0)
+'   Any other value polls the chip and returns the current setting
+    readreg(core#ALS_CONF, 2, @curr_state)
+    case ||(state)
+        0, 1:
+            state := ((||(state) << core#ALS_INT_EN))
+        other:
+            return (((curr_state >> core#ALS_INT_EN) & 1) == 1)
+
+    state := ((curr_state & core#ALS_INT_EN_MASK) | state)
+    writereg(core#ALS_CONF, 2, @state)
+
 PUB DeviceID{}: id
 ' Read device identification
     id := 0
