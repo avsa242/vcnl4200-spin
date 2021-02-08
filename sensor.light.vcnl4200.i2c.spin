@@ -72,6 +72,22 @@ PUB ALSData{}: als_adc
 '   Returns: u16
     readreg(core#ALS_DATA, 2, @als_adc)
 
+PUB ALSDataRate(rate): curr_rate
+' Set ALS data rate, in Hz
+'   Valid values: 2_5 (2.5), 5, 10, *20
+'   Any other value polls the chip and returns the current setting
+'   NOTE: This affects both ALSData() and WhiteData() output
+    readreg(core#ALS_CONF, 2, @curr_rate)
+    case rate
+        2_5, 5, 10, 20:
+            rate := lookdownz(rate: 20, 10, 5, 2_5) << core#ALS_IT
+        other:
+            curr_rate := ((curr_rate >> core#ALS_IT) & core#ALS_IT_BITS)
+            return lookupz(curr_rate: 20, 10, 5, 2_5)
+
+    rate := ((curr_rate & core#ALS_IT_MASK) | rate)
+    writereg(core#ALS_CONF, 2, @rate)
+
 PUB DeviceID{}: id
 ' Read device identification
     id := 0
