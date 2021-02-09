@@ -34,9 +34,10 @@ OBJ
 PUB Main{}
 
     setup{}
+
+    vcnl.defaults{}                             ' set sensor defaults
     vcnl.opmode(vcnl#BOTH)
     ser.dec(vcnl.opmode(-2))
-    vcnl.alsdatarate(20)
     repeat
         ser.position(0, 3)
         ser.hex(vcnl.proxdata, 8)

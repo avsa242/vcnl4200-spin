@@ -35,6 +35,7 @@ CON
 
 VAR
 
+    long _als_res
 
 OBJ
 
@@ -71,6 +72,7 @@ PUB Stop{}
 
 PUB Defaults{}
 ' Set factory defaults
+    alsdatarate(20)
 
 PUB ALSData{}: als_adc
 ' Read Ambient Light Sensor data
@@ -85,7 +87,9 @@ PUB ALSDataRate(rate): curr_rate
     readreg(core#ALS_CONF, 2, @curr_rate)
     case rate
         2_5, 5, 10, 20:
-            rate := lookdownz(rate: 20, 10, 5, 2_5) << core#ALS_IT
+            rate := lookdownz(rate: 20, 10, 5, 2_5)
+            _als_res := lookupz(rate: 0_024, 0_012, 0_006, 0_003)
+            rate <<= core#ALS_IT
         other:
             curr_rate := ((curr_rate >> core#ALS_IT) & core#ALS_IT_BITS)
             return lookupz(curr_rate: 20, 10, 5, 2_5)
@@ -93,25 +97,83 @@ PUB ALSDataRate(rate): curr_rate
     rate := ((curr_rate & core#ALS_IT_MASK) | rate)
     writereg(core#ALS_CONF, 2, @rate)
 
-PUB ALSIntHighThresh(thresh): curr_thr
-' Set ALS interrupt high threshold
-'   Valid values: 0..65535
-    case thresh
-        0..65535:
-            writereg(core#ALS_THDH, 2, @thresh)
-        other:
-            readreg(core#ALS_THDH, 2, @curr_thr)
-            return
+PUB ALSIntHighThresh(thresh): curr_thr | rw
+' Set ALS interrupt high threshold, in milli-lux
+'   Valid values: dependent on ALSDataRate() - see table below
+'   Any other value polls the chip and returns the current setting
+    case _als_res
+        0_024:                                  ' 20Hz
+            case thresh
+                0..1572_840:
+                    rw := 1
+                other:
+                    rw := 0
+        0_012:                                  ' 10Hz
+            case thresh
+                0..786_420:
+                    rw := 1
+                other:
+                    rw := 0
+        0_006:                                  ' 5Hz
+            case thresh
+                0..393_210:
+                    rw := 1
+                other:
+                    rw := 0
+        0_003:                                  ' 2_5Hz (2.5)
+            case thresh
+                0..196_605:
+                    rw := 1
+                other:
+                    rw := 0
 
-PUB ALSIntLowThresh(thresh): curr_thr
-' Set ALS interrupt low threshold
-'   Valid values: 0..65535
-    case thresh
-        0..65535:
-            writereg(core#ALS_THDL, 2, @thresh)
-        other:
+    case rw
+        0:                                      ' READ
+            curr_thr := 0
+            readreg(core#ALS_THDH, 2, @curr_thr)
+            curr_thr *= _als_res
+        1:                                      ' WRITE
+            thresh /= _als_res
+            writereg(core#ALS_THDH, 2, @thresh)
+
+PUB ALSIntLowThresh(thresh): curr_thr | rw
+' Set ALS interrupt low threshold, in milli-lux
+'   Valid values: dependent on ALSDataRate() - see table below
+'   Any other value polls the chip and returns the current setting
+    case _als_res
+        0_024:                                  ' 20Hz
+            case thresh
+                0..1572_840:
+                    rw := 1
+                other:
+                    rw := 0
+        0_012:                                  ' 10Hz
+            case thresh
+                0..786_420:
+                    rw := 1
+                other:
+                    rw := 0
+        0_006:                                  ' 5Hz
+            case thresh
+                0..393_210:
+                    rw := 1
+                other:
+                    rw := 0
+        0_003:                                  ' 2_5Hz (2.5)
+            case thresh
+                0..196_605:
+                    rw := 1
+                other:
+                    rw := 0
+
+    case rw
+        0:                                      ' READ
+            curr_thr := 0
             readreg(core#ALS_THDL, 2, @curr_thr)
-            return
+            curr_thr *= _als_res
+        1:                                      ' WRITE
+            thresh /= _als_res
+            writereg(core#ALS_THDL, 2, @thresh)
 
 PUB ALSIntPersistence(cycles): curr_cyc
 ' Set ALS interrupt persistence, in number of cycles
