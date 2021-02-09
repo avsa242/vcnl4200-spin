@@ -143,6 +143,21 @@ PUB DeviceID{}: id
     id := 0
     readreg(core#DEVID, 2, @id)
 
+PUB IREDCurrent(led_i): curr_i
+' Set IRED drive current, in milliamperes
+'   Valid values: 50, 75, 100, 120, 140, 160, 180, 200
+'   Any other value polls the chip and returns the current setting
+    readreg(core#PS_CONF3, 2, @curr_i)
+    case led_i
+        50, 75, 100, 120, 140, 160, 180, 200:
+            led_i := lookdownz(led_i: 50, 75, 100, 120, 140, 160, 180, 200) {
+}           << core#LED_I
+        other:
+            curr_i := ((curr_i >> core#LED_I) & core#LED_I_BITS)
+            return lookupz(curr_i: 50, 75, 100, 120, 140, 160, 180, 200)
+    led_i := ((curr_i & core#LED_I_MASK) | led_i)
+    writereg(core#PS_CONF3, 2, @led_i)
+
 PUB IREDDutyCycle(ratio): curr_rat
 ' Set IRED duty cycle, as a ratio of 1 / ...
 '   Valid values: *160, 320, 640, 1280
