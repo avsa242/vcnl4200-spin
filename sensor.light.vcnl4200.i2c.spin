@@ -98,6 +98,16 @@ PUB ALSIntHighThresh(thresh): curr_thr
             readreg(core#ALS_THDH, 2, @curr_thr)
             return
 
+PUB ALSIntLowThresh(thresh): curr_thr
+' Set ALS interrupt low threshold
+'   Valid values: 0..65535
+    case thresh
+        0..65535:
+            writereg(core#ALS_THDL, 2, @thresh)
+        other:
+            readreg(core#ALS_THDL, 2, @curr_thr)
+            return
+
 PUB ALSIntPersistence(cycles): curr_cyc
 ' Set ALS interrupt persistence, in number of cycles
 '   Valid values:
