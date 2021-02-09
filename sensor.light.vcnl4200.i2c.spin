@@ -218,8 +218,9 @@ PUB ProxIntMask(mask): curr_mask
     readreg(core#PS_CONF1, 2, @curr_mask)
     case mask
         %00..%11:
+            mask <<= core#PS_INT
         other:
-            return (curr_mask & core#PS_INT_BITS)
+            return ((curr_mask >> core#PS_INT) & core#PS_INT_BITS)
 
     mask := ((curr_mask & core#PS_INT_MASK) | mask)
     writereg(core#PS_CONF1, 2, @mask)
