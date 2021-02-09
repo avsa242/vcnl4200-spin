@@ -256,6 +256,30 @@ PUB ProxIntMask(mask): curr_mask
     mask := ((curr_mask & core#PS_INT_MASK) | mask)
     writereg(core#PS_CONF1, 2, @mask)
 
+PUB ProxIntHighThresh(thresh): curr_thr
+' Set proximity interrupt high threshold
+'   Valid values: 0..65535
+'   Any other value polls the chip and returns the current setting
+    case thresh
+        0..65535:
+            writereg(core#PS_THDH, 2, @thresh)
+        other:
+            curr_thr := 0
+            readreg(core#PS_THDH, 2, @curr_thr)
+            return
+
+PUB ProxIntLowThresh(thresh): curr_thr
+' Set proximity interrupt low threshold
+'   Valid values: 0..65535
+'   Any other value polls the chip and returns the current setting
+    case thresh
+        0..65535:
+            writereg(core#PS_THDL, 2, @thresh)
+        other:
+            curr_thr := 0
+            readreg(core#PS_THDL, 2, @curr_thr)
+            return
+
 PUB ProxIntPersistence(cycles): curr_cyc
 ' Set Proximity Sensor interrupt persistence, in cycles
 '   Valid values: *1, 2, 3, 4
