@@ -189,6 +189,21 @@ PUB OpMode(mode): curr_mode | alsconf, psconf
     writereg(core#ALS_CONF, 2, @alsconf)
     writereg(core#PS_CONF1, 2, @psconf)
 
+PUB ProxADCRes(adc_res): curr_res
+' Set proximity sensor ADC resolution, in bits
+'   Valid values: 12, 16
+'   Any other value polls the chip and returns the current setting
+    readreg(core#PS_CONF1, 2, @curr_res)
+    case adc_res
+        12, 16:
+            adc_res := lookdownz(adc_res: 12, 16) << core#PS_HD
+        other:
+            curr_res := ((curr_res >> core#PS_HD) & 1)
+            return lookupz(curr_res: 12, 16)
+
+    adc_res := ((curr_res & core#PS_HD_MASK) | adc_res)
+    writereg(core#PS_CONF1, 2, @adc_res)
+
 PUB ProxData{}: prox_adc
 ' Read proximity data
 '   Returns: u16
