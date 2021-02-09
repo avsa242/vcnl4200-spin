@@ -143,6 +143,21 @@ PUB DeviceID{}: id
     id := 0
     readreg(core#DEVID, 2, @id)
 
+PUB IREDDutyCycle(ratio): curr_rat
+' Set IRED duty cycle, as a ratio of 1 / ...
+'   Valid values: 160, 320, 640, 1280
+'   Any other value polls the chip and returns the current setting
+    readreg(core#PS_CONF1, 2, @curr_rat)
+    case ratio
+        160, 320, 640, 1280:
+            ratio := lookdownz(ratio: 160, 320, 640, 1280) << core#PS_DUTY
+        other:
+            curr_rat := ((curr_rat >> core#PS_DUTY) & core#PS_DUTY_BITS)
+            return lookupz(curr_rat: 160, 320, 640, 1280)
+
+    ratio := ((curr_rat & core#PS_DUTY_MASK) | ratio)
+    writereg(core#PS_CONF1, 2, @ratio)
+
 PUB OpMode(mode): curr_mode | alsconf, psconf
 ' Set operating mode
 '   Valid values:

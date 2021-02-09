@@ -15,7 +15,7 @@ CON
 ' I2C Configuration
     I2C_MAX_FREQ    = 400_000                   ' device max I2C bus freq
     SLAVE_ADDR      = $51 << 1                  ' 7-bit format slave address
-    T_POR           = 100_000                   ' startup time (usecs) XXX unlisted
+    T_POR           = 2_500                     ' startup time (usecs)
 
     DEVID           = ID
     DEVID_RESP      = $1058                     ' device ID expected response
