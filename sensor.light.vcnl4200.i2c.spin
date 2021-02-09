@@ -6,7 +6,7 @@
         Proximity and Ambient Light sensor
     Copyright (c) 2021
     Started Feb 07, 2021
-    Updated Feb 08, 2021
+    Updated Feb 09, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -111,7 +111,7 @@ PUB ALSIntLowThresh(thresh): curr_thr
 PUB ALSIntPersistence(cycles): curr_cyc
 ' Set ALS interrupt persistence, in number of cycles
 '   Valid values:
-'       1, 2, 4, 8
+'      *1, 2, 4, 8
 '   Any other value polls the chip and returns the current setting
     readreg(core#ALS_CONF, 2, @curr_cyc)
     case cycles
@@ -126,7 +126,7 @@ PUB ALSIntPersistence(cycles): curr_cyc
 
 PUB ALSIntsEnabled(state): curr_state
 ' Enable ALS interrupts
-'   Valid values: TRUE (-1 or 1), FALSE (0)
+'   Valid values: TRUE (-1 or 1), *FALSE (0)
 '   Any other value polls the chip and returns the current setting
     readreg(core#ALS_CONF, 2, @curr_state)
     case ||(state)
@@ -145,7 +145,7 @@ PUB DeviceID{}: id
 
 PUB IREDDutyCycle(ratio): curr_rat
 ' Set IRED duty cycle, as a ratio of 1 / ...
-'   Valid values: 160, 320, 640, 1280
+'   Valid values: *160, 320, 640, 1280
 '   Any other value polls the chip and returns the current setting
     readreg(core#PS_CONF1, 2, @curr_rat)
     case ratio
@@ -161,7 +161,7 @@ PUB IREDDutyCycle(ratio): curr_rat
 PUB OpMode(mode): curr_mode | alsconf, psconf
 ' Set operating mode
 '   Valid values:
-'       SLEEP (0): Power down both ALS+PROX sensors
+'      *SLEEP (0): Power down both ALS+PROX sensors
 '       ALS (1): Ambient Light Sensor active
 '       PROX (2): Proximity sensor active
 '       BOTH (3): Both sensors active
@@ -193,6 +193,20 @@ PUB ProxData{}: prox_adc
 ' Read proximity data
 '   Returns: u16
     readreg(core#PS_DATA, 2, @prox_adc)
+
+PUB ProxIntPersistence(cycles): curr_cyc
+' Set Proximity Sensor interrupt persistence, in cycles
+'   Valid values: *1, 2, 3, 4
+'   Any other value polls the chip and returns the current setting
+    readreg(core#PS_CONF1, 2, @curr_cyc)
+    case cycles
+        1..4:
+            cycles := (cycles-1) << core#PS_PERS
+        other:
+            return (((curr_cyc >> core#PS_PERS) & core#PS_PERS_BITS) + 1)
+
+    cycles := ((curr_cyc & core#PS_PERS_MASK) | cycles)
+    writereg(core#PS_CONF1, 2, @cycles)
 
 PUB Reset{}
 ' Reset the device
