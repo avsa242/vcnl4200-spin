@@ -204,6 +204,17 @@ PUB ProxADCRes(adc_res): curr_res
     adc_res := ((curr_res & core#PS_HD_MASK) | adc_res)
     writereg(core#PS_CONF1, 2, @adc_res)
 
+PUB ProxBias(level): curr_lev
+' Set proximity sensor bias offset
+'   Valid values: *0..65535
+'   Any other value polls the chip and returns the current setting
+    case level
+        0..65535:
+            writereg(core#PS_CANC, 2, @level)
+        other:
+            readreg(core#PS_CANC, 2, @curr_lev)
+            return
+
 PUB ProxData{}: prox_adc
 ' Read proximity data
 '   Returns: u16
