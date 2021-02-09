@@ -209,6 +209,21 @@ PUB ProxData{}: prox_adc
 '   Returns: u16
     readreg(core#PS_DATA, 2, @prox_adc)
 
+PUB ProxIntMask(mask): curr_mask
+' Set proximity sensor interrupt mask
+'   Valid values:
+'       Bit 1: assert when far
+'           0: assert when near
+'   Any other value polls the chip and returns the current setting
+    readreg(core#PS_CONF1, 2, @curr_mask)
+    case mask
+        %00..%11:
+        other:
+            return (curr_mask & core#PS_INT_BITS)
+
+    mask := ((curr_mask & core#PS_INT_MASK) | mask)
+    writereg(core#PS_CONF1, 2, @mask)
+
 PUB ProxIntPersistence(cycles): curr_cyc
 ' Set Proximity Sensor interrupt persistence, in cycles
 '   Valid values: *1, 2, 3, 4
