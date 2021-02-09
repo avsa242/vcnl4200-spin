@@ -28,6 +28,11 @@ CON
     BOTH            = %11
     ALS_PROX        = %11
 
+' Sunlight immunity modes
+    OFF             = 0
+    NORM            = 1
+    HIGH            = 3
+
 VAR
 
 
@@ -267,6 +272,22 @@ PUB ProxIntPersistence(cycles): curr_cyc
 
 PUB Reset{}
 ' Reset the device
+
+PUB SunCancelMode(mode): curr_mode
+' Set sunlight cancellation/immunity mode
+'   Valid values:
+'       OFF (0): disabled
+'       NORM (1): typical sunlight immunity
+'       HIGH (3): 2x typical sunlight immunity
+    readreg(core#PS_CONF3, 2, @curr_mode)
+    case mode
+        OFF, NORM, HIGH:
+        other:
+            curr_mode := (curr_mode & core#PS_SC_BITS)
+            return lookupz(curr_mode & core#PS_SC_BITS: OFF, NORM, OFF, HIGH)
+
+    mode := ((curr_mode & core#PS_SC_MASK) | mode)
+    writereg(core#PS_CONF3, 2, @mode)
 
 PUB WhiteData{}: white_adc
 ' Read White light data

@@ -5,7 +5,7 @@
     Description: Low-level constants
     Copyright (c) 2021
     Started Feb 07, 2021
-    Updated Feb 08, 2021
+    Updated Feb 09, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -76,6 +76,7 @@ CON
         PS_SC_EN        = 0
         LED_I_BITS      = %111
         PS_MPS_BITS     = %11
+        PS_SC_BITS      = %11
         PS_MS_MASK      = (1 << PS_MS) ^ PS_CONF3_MASK
         PS_SP_MASK      = (1 << PS_SP) ^ PS_CONF3_MASK
         PS_SPO_MASK     = (1 << PS_SPO) ^ PS_CONF3_MASK
@@ -86,6 +87,7 @@ CON
         PS_TRIG_MASK    = (1 << PS_TRIG) ^ PS_CONF3_MASK
         PS_SC_ADV_MASK  = (1 << PS_SC_ADV) ^ PS_CONF3_MASK
         PS_SC_EN_MASK   = (1 << PS_SC_EN) ^ PS_CONF3_MASK
+        PS_SC_MASK      = PS_SC_BITS ^ PS_CONF3_MASK
 
     PS_CANC         = $05
 
