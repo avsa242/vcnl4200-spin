@@ -148,6 +148,18 @@ PUB DeviceID{}: id
     id := 0
     readreg(core#DEVID, 2, @id)
 
+PUB Interrupt{}: src
+' Read interrupt flags
+'   Bit 7: proximity sensor saturated
+'       6: sunlight protection
+'       5: ALS crossing ALSIntLowThresh()
+'       4: ALS crossing ALSIntHighThresh()
+'       1: close proximity: prox. above ProxIntHighThresh()
+'       0: far proximity: prox. below ProxIntLowThresh()
+    src := 0
+    readreg(core#INT_FLAG, 2, @src)
+    src >>= 8
+
 PUB IREDCurrent(led_i): curr_i
 ' Set IRED drive current, in milliamperes
 '   Valid values: 50, 75, 100, 120, 140, 160, 180, 200
