@@ -371,6 +371,22 @@ PUB ProxIntPersistence(cycles): curr_cyc
     cycles := ((curr_cyc & core#PS_PERS_MASK) | cycles)
     writereg(core#PS_CONF1, 2, @cycles)
 
+PUB ProxIntTime(itime): curr_itime
+' Set Proximity sensor integration time, as a cycle multiplier
+'   Valid values: 1, 1_5 (1.5), 2, 4, 8, 9
+'   Any other value polls the chip and returns the current setting
+    curr_itime := 0
+    readreg(core#PS_CONF1, 2, @curr_itime)
+    case itime
+        1, 1_5, 2, 4, 8, 9:
+            itime := lookdownz(itime: 1, 1_5, 2, 4, 8, 9) << core#PS_IT
+        other:
+            curr_itime := ((curr_itime >> core#PS_IT) & core#PS_IT_BITS)
+            return lookupz(itime: 1, 1_5, 2, 4, 8, 9)
+
+    itime := ((curr_itime & core#PS_IT_MASK) | itime)
+    writereg(core#PS_CONF1, 2, @itime)
+
 PUB Reset{}
 ' Reset the device
 
