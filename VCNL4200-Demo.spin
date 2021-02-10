@@ -29,6 +29,7 @@ OBJ
     cfg     : "core.con.boardcfg.flip"
     ser     : "com.serial.terminal.ansi"
     time    : "time"
+    int     : "string.integer"
     vcnl    : "sensor.light.vcnl4200.i2c"
 
 PUB Main{}
@@ -46,6 +47,7 @@ PUB Main{}
         ser.newline
         ser.hex(vcnl.whitedata, 8)
         ser.newline
+        ser.str(int.decpadded(vcnl.lux, 7))
     repeat
 
 PUB Setup{}

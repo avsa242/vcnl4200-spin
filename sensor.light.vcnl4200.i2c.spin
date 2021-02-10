@@ -26,7 +26,6 @@ CON
     ALS             = %01
     PROX            = %10
     BOTH            = %11
-    ALS_PROX        = %11
 
 ' Sunlight immunity modes
     OFF             = 0
@@ -252,6 +251,10 @@ PUB IREDDutyCycle(ratio): curr_rat
     ratio := ((curr_rat & core#PS_DUTY_MASK) | ratio)
     writereg(core#PS_CONF1, 2, @ratio)
 
+PUB Lux{}: mlx
+' Read ALS sensor data, calculated in milli-lux
+    return (alsdata{} * _als_res)
+
 PUB OpMode(mode): curr_mode | alsconf, psconf
 ' Set operating mode
 '   Valid values:
@@ -272,7 +275,7 @@ PUB OpMode(mode): curr_mode | alsconf, psconf
         PROX:
             alsconf := ((alsconf & core#ALS_SD_MASK) | core#ALS_OFF)
             psconf := (psconf & core#PS_SD_MASK)
-        BOTH, ALS_PROX:
+        BOTH:
             alsconf := (alsconf & core#ALS_SD_MASK)
             psconf := (psconf & core#PS_SD_MASK)
         other:

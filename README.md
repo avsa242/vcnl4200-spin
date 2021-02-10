@@ -8,6 +8,13 @@ This is a P8X32A/Propeller, ~~P2X8C4M64P/Propeller 2~~ driver object for the Vis
 ## Salient Features
 
 * I2C connection at up to 400kHz
+* Read Ambient Light Sensor data (raw ADC, milli-lux), Proximity sensor data (raw ADC), White light data (raw ADC)
+* Set ALS data rate/integration time
+* Set IRED current and duty cycle
+* Interrupts: ALS and Prox. interrupt thresholds, interrupt persistence, interrupt mask (Prox.)
+* Set Prox. ADC resolution (12, 16 bits)
+* Set Prox. 'zero', or bias offset
+* Sunlight cancellation/immunity
 
 ## Requirements
 
@@ -22,7 +29,7 @@ P2/SPIN2:
 
 ## Compiler Compatibility
 
-* P1/SPIN1: OpenSpin (tested with 1.00.81)
+* P1/SPIN1: OpenSpin (tested with 1.00.81), FlexSpin (tested with 5.0.6-beta)
 * ~~P2/SPIN2: FlexSpin (tested with 5.0.6-beta)~~ _(not implemented yet)_
 * ~~BST~~ (incompatible - no preprocessor)
 * ~~Propeller Tool~~ (incompatible - no preprocessor)
