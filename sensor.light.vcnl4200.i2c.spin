@@ -32,6 +32,18 @@ CON
     NORM            = 1
     HIGH            = 3
 
+' Interrupt flags
+    PROX_SAT        = (1 << 7)                  ' prox. sensor saturated
+    SUNLT_PROT      = (1 << 6)                  ' sunlight protect on
+    ALS_LOW         = (1 << 5)                  ' ALS low threshold
+    ALS_HI          = (1 << 4)                  ' ALS high threshold
+    PROX_CLOSE      = (1 << 1)                  ' prox. sensor close distance
+    PROX_FAR        = 1                         ' prox. sensor far distance
+
+' Proximity sensor interrupt config
+    INT_NEAR        = 1
+    INT_FAR         = (1 << 1)
+
 VAR
 
     long _als_res
@@ -97,6 +109,7 @@ PUB Preset_ProxLongRange{}
 '   * Proximity sensor integration time 9T
     opmode(PROX)
     proxinttime(9)
+    proxadcres(16)
 
 PUB ALSData{}: als_adc
 ' Read Ambient Light Sensor data
@@ -234,6 +247,11 @@ PUB DeviceID{}: id
     id := 0
     readreg(core#DEVID, 2, @id)
 
+PUB IntClear{}
+' Clear interrupts
+    interrupt{}                                 ' simply reading interrupt
+                                                ' flags clears them
+
 PUB Interrupt{}: src
 ' Read interrupt flags
 '   Bit 7: proximity sensor saturated
@@ -342,22 +360,6 @@ PUB ProxData{}: prox_adc
 '   Returns: u16
     readreg(core#PS_DATA, 2, @prox_adc)
 
-PUB ProxIntMask(mask): curr_mask
-' Set proximity sensor interrupt mask
-'   Valid values:
-'       Bit 1: assert when far
-'           0: assert when near
-'   Any other value polls the chip and returns the current setting
-    readreg(core#PS_CONF1, 2, @curr_mask)
-    case mask
-        %00..%11:
-            mask <<= core#PS_INT
-        other:
-            return ((curr_mask >> core#PS_INT) & core#PS_INT_BITS)
-
-    mask := ((curr_mask & core#PS_INT_MASK) | mask)
-    writereg(core#PS_CONF1, 2, @mask)
-
 PUB ProxIntHighThresh(thresh): curr_thr
 ' Set proximity interrupt high threshold
 '   Valid values: 0..65535
@@ -381,6 +383,22 @@ PUB ProxIntLowThresh(thresh): curr_thr
             curr_thr := 0
             readreg(core#PS_THDL, 2, @curr_thr)
             return
+
+PUB ProxIntMask(mask): curr_mask
+' Set proximity sensor interrupt mask
+'   Valid values:
+'       Bit 1: assert when far
+'           0: assert when near
+'   Any other value polls the chip and returns the current setting
+    readreg(core#PS_CONF1, 2, @curr_mask)
+    case mask
+        %00..%11:
+            mask <<= core#PS_INT
+        other:
+            return ((curr_mask >> core#PS_INT) & core#PS_INT_BITS)
+
+    mask := ((curr_mask & core#PS_INT_MASK) | mask)
+    writereg(core#PS_CONF1, 2, @mask)
 
 PUB ProxIntPersistence(cycles): curr_cyc
 ' Set Proximity Sensor interrupt persistence, in cycles
