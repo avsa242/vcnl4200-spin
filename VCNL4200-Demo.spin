@@ -5,11 +5,10 @@
     Description: Demo of the VCNL4200 driver
     Copyright (c) 2021
     Started Feb 07, 2021
-    Updated Feb 07, 2021
+    Updated Feb 10, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
-
 CON
 
     _clkmode    = cfg#_clkmode
@@ -24,6 +23,8 @@ CON
     I2C_HZ      = 400_000                       ' max is 400_000
 ' --
 
+    DAT_COL     = 20
+
 OBJ
 
     cfg     : "core.con.boardcfg.flip"
@@ -36,19 +37,50 @@ PUB Main{}
 
     setup{}
 
-    vcnl.defaults{}                             ' set sensor defaults
-    vcnl.opmode(vcnl#BOTH)
-    ser.dec(vcnl.opmode(-2))
+    vcnl.preset_als_prox{}                      ' set to combined ALS and prox.
+                                                ' sensor operating mode
+
     repeat
         ser.position(0, 3)
-        ser.hex(vcnl.proxdata, 8)
-        ser.newline
-        ser.hex(vcnl.alsdata, 8)
-        ser.newline
-        ser.hex(vcnl.whitedata, 8)
-        ser.newline
-        ser.str(int.decpadded(vcnl.lux, 7))
+        ser.str(string("Lux: "))
+        ser.positionx(DAT_COL)
+        decimal(vcnl.lux{}, 1000)
+        ser.clearline{}
+        ser.newline{}
+
+        ser.str(string("White ADC: "))
+        ser.positionx(DAT_COL)
+        ser.hex(vcnl.whitedata{}, 4)
+        ser.newline{}
+
+        ser.str(string("Proximity ADC: "))
+        ser.positionx(DAT_COL)
+        ser.hex(vcnl.proxdata{}, 4)
+
+PRI Decimal(scaled, divisor) | whole[4], part[4], places, tmp, sign
+' Display a scaled up number as a decimal
+'   Scale it back down by divisor (e.g., 10, 100, 1000, etc)
+    whole := scaled / divisor
+    tmp := divisor
+    places := 0
+    part := 0
+    sign := 0
+    if scaled < 0
+        sign := "-"
+    else
+        sign := " "
+
     repeat
+        tmp /= 10
+        places++
+    until tmp == 1
+    scaled //= divisor
+    part := int.deczeroed(||(scaled), places)
+
+    ser.char(sign)
+    ser.dec(||(whole))
+    ser.char(".")
+    ser.str(part)
 
 PUB Setup{}
 

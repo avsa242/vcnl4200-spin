@@ -6,7 +6,7 @@
         Proximity and Ambient Light sensor
     Copyright (c) 2021
     Started Feb 07, 2021
-    Updated Feb 09, 2021
+    Updated Feb 10, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -72,6 +72,31 @@ PUB Stop{}
 PUB Defaults{}
 ' Set factory defaults
     alsdatarate(20)
+
+PUB Preset_ALS{}
+' ALS operating mode, 20Hz data rate
+    opmode(ALS)
+    alsdatarate(20)
+
+PUB Preset_ALS_Prox{}
+' ALS and Proximity sensor operating mode
+'   * ALS data rate 20Hz
+'   * Proximity sensor integration time 1T
+    opmode(BOTH)
+    alsdatarate(20)
+    proxinttime(1)
+
+PUB Preset_Prox{}
+' Proximity sensor operating mode
+'   * Proximity sensor integration time 1T
+    opmode(PROX)
+    proxinttime(1)
+
+PUB Preset_ProxLongRange{}
+' Proximity sensor operating mode
+'   * Proximity sensor integration time 9T
+    opmode(PROX)
+    proxinttime(9)
 
 PUB ALSData{}: als_adc
 ' Read Ambient Light Sensor data
