@@ -6,7 +6,7 @@
         Proximity and Ambient Light sensor
     Copyright (c) 2021
     Started Feb 07, 2021
-    Updated Feb 10, 2021
+    Updated Feb 11, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -68,10 +68,12 @@ PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ): status
 }   I2C_HZ =< core#I2C_MAX_FREQ                 ' validate pins and bus freq
         if (status := i2c.init(SCL_PIN, SDA_PIN, I2C_HZ))
             time.usleep(core#T_POR)             ' wait for device startup
-            if i2c.present(SLAVE_WR)            ' test device bus presence
-                i2c.stop{}                      ' *** req'd: device quirk
-                if deviceid{} == core#DEVID_RESP' validate device 
-                    return
+            i2c.start{}                         ' reset a possibly "hung up"
+            i2c.write($ff)                      '   bus
+            i2c.start{}
+            i2c.stop{}
+            if deviceid{} == core#DEVID_RESP    ' validate device
+                return
     ' if this point is reached, something above failed
     ' Re-check I/O pin assignments, bus speed, connections, power
     ' Lastly - make sure you have at least one free core/cog 
