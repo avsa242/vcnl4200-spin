@@ -18,8 +18,8 @@ CON
     SER_BAUD    = 115_200
     LED         = cfg#LED1
 
-    I2C_SCL     = 28
-    I2C_SDA     = 29
+    SCL_PIN     = 28
+    SDA_PIN     = 29
     I2C_FREQ    = 400_000                       ' max is 400_000
 ' --
 
@@ -89,7 +89,7 @@ PUB Setup{}
     ser.clear{}
     ser.strln(string("Serial terminal started"))
 
-    if vcnl.startx(I2C_SCL, I2C_SDA, I2C_FREQ)
+    if vcnl.startx(SCL_PIN, SDA_PIN, I2C_FREQ)
         ser.strln(string("VCNL4200 driver started"))
     else
         ser.strln(string("VCNL4200 driver failed to start - halting"))
