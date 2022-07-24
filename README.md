@@ -42,5 +42,8 @@ P2/SPIN2:
 
 ## Limitations
 
-* TBD
+* Ensure you power the VCNL4200's IR LED from a high current 5V source (>800mA); powering it
+via some boards' 5V outputs (e.g., from a Parallax FLiP's USB5V when connected to a PC USB port)
+isn't recommended. The high current draw can cause strange serial behavior and failure to load
+code to the Propeller.
 
