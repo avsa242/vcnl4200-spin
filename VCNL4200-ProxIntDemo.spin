@@ -4,9 +4,9 @@
     Author: Jesse Burt
     Description: Demo of the VCNL4200 driver
         Proximity sensor interrupt functionality
-    Copyright (c) 2021
+    Copyright (c) 2022
     Started Feb 10, 2021
-    Updated Feb 10, 2021
+    Updated Aug 20, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -32,7 +32,6 @@ OBJ
     cfg     : "core.con.boardcfg.flip"
     ser     : "com.serial.terminal.ansi"
     time    : "time"
-    int     : "string.integer"
     vcnl    : "sensor.light.vcnl4200"
 
 VAR
