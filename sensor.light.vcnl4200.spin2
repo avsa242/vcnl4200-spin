@@ -129,83 +129,51 @@ PUB als_data_rate(rate=-2): curr_rate
     rate := ((curr_rate & core.ALS_IT_MASK) | rate)
     writereg(core.ALS_CONF, 2, @rate)
 
-PUB als_int_hi_thresh(thresh=-2): curr_thr | rw
+PUB als_int_hi_thresh(): thresh
+' Get ALS interrupt high threshold
+'   Returns: milli-lux
+    thresh := 0
+    readreg(core#ALS_THDH, 2, @thresh)
+    thresh *= _als_res
+
+PUB als_int_lo_thresh(): thresh
+' Get ALS interrupt low threshold
+'   Returns: milli-lux
+    thresh := 0
+    readreg(core#ALS_THDL, 2, @thresh)
+    thresh *= _als_res
+
+PUB als_set_int_hi_thresh(thresh)
 ' Set ALS interrupt high threshold, in milli-lux
-'   Valid values: dependent on ALSDataRate() - see table below
-'   Any other value polls the chip and returns the current setting
+'   Valid values: dependent on als_data_rate() - see table below
     case _als_res
         0_024:                                  ' 20Hz
-            case thresh
-                0..1572_840:
-                    rw := 1
-                other:
-                    rw := 0
+            thresh := 0 #> thresh <# 1572_840
         0_012:                                  ' 10Hz
-            case thresh
-                0..786_420:
-                    rw := 1
-                other:
-                    rw := 0
+            thresh := 0 #> thresh <# 786_420
         0_006:                                  ' 5Hz
-            case thresh
-                0..393_210:
-                    rw := 1
-                other:
-                    rw := 0
+            thresh := 0 #> thresh <# 393_210
         0_003:                                  ' 2_5Hz (2.5)
-            case thresh
-                0..196_605:
-                    rw := 1
-                other:
-                    rw := 0
+            thresh := 0 #> thresh <# 196_605
 
-    case rw
-        0:                                      ' READ
-            curr_thr := 0
-            readreg(core.ALS_THDH, 2, @curr_thr)
-            curr_thr *= _als_res
-        1:                                      ' WRITE
-            thresh /= _als_res
-            writereg(core.ALS_THDH, 2, @thresh)
+    thresh /= _als_res
+    writereg(core#ALS_THDH, 2, @thresh)
 
-PUB als_int_lo_thresh(thresh=-2): curr_thr | rw
+PUB als_set_int_lo_thresh(thresh)
 ' Set ALS interrupt low threshold, in milli-lux
-'   Valid values: dependent on ALSDataRate() - see table below
-'   Any other value polls the chip and returns the current setting
+'   Valid values: dependent on als_data_rate() - see table below
     case _als_res
         0_024:                                  ' 20Hz
-            case thresh
-                0..1572_840:
-                    rw := 1
-                other:
-                    rw := 0
+            thresh := 0 #> thresh <# 1572_840
         0_012:                                  ' 10Hz
-            case thresh
-                0..786_420:
-                    rw := 1
-                other:
-                    rw := 0
+            thresh := 0 #> thresh <# 786_420
         0_006:                                  ' 5Hz
-            case thresh
-                0..393_210:
-                    rw := 1
-                other:
-                    rw := 0
+            thresh := 0 #> thresh <# 393_210
         0_003:                                  ' 2_5Hz (2.5)
-            case thresh
-                0..196_605:
-                    rw := 1
-                other:
-                    rw := 0
+            thresh := 0 #> thresh <# 196_605
 
-    case rw
-        0:                                      ' READ
-            curr_thr := 0
-            readreg(core.ALS_THDL, 2, @curr_thr)
-            curr_thr *= _als_res
-        1:                                      ' WRITE
-            thresh /= _als_res
-            writereg(core.ALS_THDL, 2, @thresh)
+    thresh /= _als_res
+    writereg(core#ALS_THDL, 2, @thresh)
 
 PUB als_int_duration(cycles=-2): curr_cyc
 ' Set number of cycles beyond threshold needed to generate an ALS interrupt
@@ -355,29 +323,27 @@ PUB prox_data(): prox_adc
 '   Returns: u16
     readreg(core.PS_DATA, 2, @prox_adc)
 
-PUB prox_int_hi_thresh(thresh=-2): curr_thr
+PUB prox_int_hi_thresh(): curr_thr
+' Get proximity interrupt high threshold
+    curr_thr := 0
+    readreg(core.PS_THDH, 2, @curr_thr)
+
+PUB prox_int_lo_thresh(): curr_thr
+' Get proximity interrupt low threshold
+    curr_thr := 0
+    readreg(core.PS_THDL, 2, @curr_thr)
+
+PUB prox_set_int_hi_thresh(thresh)
 ' Set proximity interrupt high threshold
 '   Valid values: 0..65535
-'   Any other value polls the chip and returns the current setting
-    case thresh
-        0..65535:
-            writereg(core.PS_THDH, 2, @thresh)
-        other:
-            curr_thr := 0
-            readreg(core.PS_THDH, 2, @curr_thr)
-            return
+    thresh := 0 #> thresh <# 65535
+    writereg(core#PS_THDH, 2, @thresh)
 
-PUB prox_int_lo_thresh(thresh=-2): curr_thr
+PUB prox_set_int_lo_thresh(thresh)
 ' Set proximity interrupt low threshold
 '   Valid values: 0..65535
-'   Any other value polls the chip and returns the current setting
-    case thresh
-        0..65535:
-            writereg(core.PS_THDL, 2, @thresh)
-        other:
-            curr_thr := 0
-            readreg(core.PS_THDL, 2, @curr_thr)
-            return
+    thresh := 0 #> thresh <# 65535
+    writereg(core#PS_THDL, 2, @thresh)
 
 PUB prox_int_mask(mask=-2): curr_mask
 ' Set proximity sensor interrupt mask

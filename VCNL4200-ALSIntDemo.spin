@@ -6,7 +6,7 @@
         ALS sensor interrupt functionality
     Copyright (c) 2022
     Started Feb 10, 2021
-    Updated Aug 20, 2022
+    Updated Sep 26, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -38,47 +38,47 @@ VAR
 
     long _isr_stack[50], _interrupt
 
-PUB Main{}
+PUB main{}
 
     setup{}
 
     vcnl.preset_als{}                           ' set to prox. sensor
                                                 ' operating mode
 
-    vcnl.alsintsenabled(TRUE)
-    vcnl.intclear{}                             ' ensure ints are cleared
-    vcnl.alsintlowthresh(55_000)                ' set low and high thresholds
-    vcnl.alsinthighthresh(75_000)               '   (in milli-lux)
+    vcnl.als_int_ena(TRUE)
+    vcnl.int_clr{}                              ' ensure ints are cleared
+    vcnl.als_set_int_lo_thresh(55_000)          ' set low and high thresholds
+    vcnl.als_set_int_hi_thresh(75_000)          '   (in milli-lux)
 
     ser.position(0, 3)
-    ser.printf2(string("Thresh  low: %d high: %d"), vcnl.alsintlowthresh(-2), vcnl.alsinthighthresh(-2))
+    ser.printf2(string("Thresh  low: %d high: %d"), vcnl.als_int_lo_thresh{}, vcnl.als_int_hi_thresh{})
 
     repeat
         ser.position(0, 5)
         ser.str(string("Lux: "))
         ser.position(DAT_COL, 5)
         ser.dec(vcnl.lux{})
-        if _interrupt
+        if (_interrupt)
             ser.str(string("   INTERRUPT (press c to clear)"))
 
         ser.clearline{}
-        if ser.rxcheck{} == "c"
-            vcnl.intclear{}
+        if (ser.rxcheck{} == "c")
+            vcnl.int_clr{}
 
-PUB cog_ISR{}
+PUB cog_isr{}
 ' Interrupt service routine
     dira[INT_PIN] := 0
     dira[LED] := 1
 
     repeat
-        if ina[INT_PIN] == 0                    ' interrupt is active low
+        if (ina[INT_PIN] == 0)                  ' interrupt is active low
             outa[LED] := 1
             _interrupt := TRUE
         else
             outa[LED] := 0
             _interrupt := FALSE
 
-PUB Setup{}
+PUB setup{}
 
     ser.start(SER_BAUD)
     time.msleep(30)
