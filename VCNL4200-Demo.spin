@@ -5,7 +5,7 @@
     Description: Demo of the VCNL4200 driver
     Copyright (c) 2022
     Started Feb 07, 2021
-    Updated Aug 20, 2022
+    Updated Sep 26, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -32,7 +32,7 @@ OBJ
     time    : "time"
     vcnl    : "sensor.light.vcnl4200"
 
-PUB Main{} | lux
+PUB main{} | lux
 
     setup{}
 
@@ -43,10 +43,10 @@ PUB Main{} | lux
         lux := vcnl.lux{}
         ser.position(0, 3)
         ser.printf2(string("Lux: %d.%03.3x\n\r"), (lux / 1000), (lux // 1000))
-        ser.printf1(string("White ADC: %04.4x\n\r"), vcnl.whitedata{})
-        ser.printf1(string("Proximity ADC: %04.4x\n\r"), vcnl.proxdata{})
+        ser.printf1(string("White ADC: %04.4x\n\r"), vcnl.white_data{})
+        ser.printf1(string("Proximity ADC: %04.4x\n\r"), vcnl.prox_data{})
 
-PUB Setup{}
+PUB setup{}
 
     ser.start(SER_BAUD)
     time.msleep(30)
