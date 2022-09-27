@@ -6,20 +6,20 @@
         Proximity and Ambient Light sensor
     Copyright (c) 2022
     Started Feb 07, 2021
-    Updated Sep 26, 2022
+    Updated Sep 27, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
 
 CON
 
-    SLAVE_WR          = core#SLAVE_ADDR
-    SLAVE_RD          = core#SLAVE_ADDR|1
+    SLAVE_WR        = core#SLAVE_ADDR
+    SLAVE_RD        = core#SLAVE_ADDR|1
 
-    DEF_SCL           = 28
-    DEF_SDA           = 29
-    DEF_HZ            = 100_000
-    I2C_MAX_FREQ      = core#I2C_MAX_FREQ
+    DEF_SCL         = 28
+    DEF_SDA         = 29
+    DEF_HZ          = 100_000
+    I2C_MAX_FREQ    = core#I2C_MAX_FREQ
 
 ' Operating modes
     SLEEP           = %00
@@ -127,7 +127,7 @@ PUB als_data_rate(rate): curr_rate
 ' Set ALS data rate, in Hz
 '   Valid values: 2_5 (2.5), 5, 10, *20
 '   Any other value polls the chip and returns the current setting
-'   NOTE: This affects both ALSData() and WhiteData() output
+'   NOTE: This affects both als_data() and white_data() output
     readreg(core#ALS_CONF, 2, @curr_rate)
     case rate
         2_5, 5, 10, 20:
@@ -231,10 +231,10 @@ PUB interrupt{}: src
 ' Read interrupt flags
 '   Bit 7: proximity sensor saturated
 '       6: sunlight protection
-'       5: ALS crossing ALSIntLowThresh()
-'       4: ALS crossing ALSIntHighThresh()
-'       1: close proximity: prox. above ProxIntHighThresh()
-'       0: far proximity: prox. below ProxIntLowThresh()
+'       5: ALS crossing als_int_lo_thresh()
+'       4: ALS crossing als_int_hi_thresh()
+'       1: close proximity: prox. above prox_int_hi_thresh()
+'       0: far proximity: prox. below prox_int_lo_thresh()
     src := 0
     readreg(core#INT_FLAG, 2, @src)
     src >>= 8
