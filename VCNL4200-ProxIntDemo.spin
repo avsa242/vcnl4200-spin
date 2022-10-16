@@ -6,7 +6,7 @@
         Proximity sensor interrupt functionality
     Copyright (c) 2022
     Started Feb 10, 2021
-    Updated Sep 26, 2022
+    Updated Oct 16, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -29,7 +29,7 @@ CON
 
 OBJ
 
-    cfg     : "core.con.boardcfg.flip"
+    cfg     : "boardcfg.flip"
     ser     : "com.serial.terminal.ansi"
     time    : "time"
     vcnl    : "sensor.light.vcnl4200"
