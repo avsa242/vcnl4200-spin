@@ -1,18 +1,15 @@
 {
-    --------------------------------------------
-    Filename: VCNL4200-LuxDemo.spin2
-    Author: Jesse Burt
-    Description: VCNL4200 driver demo (P2 version)
+----------------------------------------------------------------------------------------------------
+    Filename:       VCNL4200-LuxDemo.spin2
+    Description:    Demo of the VCNL4200 driver
         * Lux data output
-    Copyright (c) 2022
-    Started Jul 24, 2022
-    Updated Oct 16, 2022
-    See end of file for terms of use.
-    --------------------------------------------
-
-    Build-time symbols supported by driver:
-        N/A
+    Author:         Jesse Burt
+    Started:        Jul 23, 2022
+    Updated:        Jun 5, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
+
 #include "core.con.click.spin2"
 
 CON
@@ -32,16 +29,17 @@ CON
     I2C_FREQ    = 400_000                       ' max is 400_000
 ' --
 
+
 OBJ
 
     cfg:    "boardcfg.p2eval"
-    sensor:  "sensor.light.vcnl4200"
     ser:    "com.serial.terminal.ansi"
+    sensor: "sensor.light.vcnl4200"
+
 
 PUB setup()
 
     ser.start(SER_BAUD)
-    waitms(10)
     ser.clear()
     ser.strln(@"Serial terminal started")
 
@@ -56,9 +54,10 @@ PUB setup()
 
 #include "luxdemo.common.spin2h"                ' code common to all lux demos
 
+
 DAT
 {
-Copyright 2022 Jesse Burt
+Copyright 2024 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

@@ -1,23 +1,27 @@
 {
-    --------------------------------------------
-    Filename: VCNL4200-ALSIntDemo.spin
-    Author: Jesse Burt
-    Description: Demo of the VCNL4200 driver
-        ALS sensor interrupt functionality
-    Copyright (c) 2022
-    Started Feb 10, 2021
-    Updated Dec 3, 2022
-    See end of file for terms of use.
-    --------------------------------------------
+----------------------------------------------------------------------------------------------------
+    Filename:       VCNL4200-ALSIntDemo.spin
+    Description:    Demo of the VCNL4200 driver
+        * ALS sensor interrupt functionality
+    Author:         Jesse Burt
+    Started:        Feb 10, 2021
+    Updated:        Jun 5, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
+
+' Uncomment the two lines below to use the bytecode-based I2C engine
+#define VCNL4200_I2C_BC
+#pragma exportdef(VCNL4200_I2C_BC)
+
 CON
 
-    _clkmode    = cfg#_clkmode
-    _xinfreq    = cfg#_xinfreq
+    _clkmode    = cfg._clkmode
+    _xinfreq    = cfg._xinfreq
 
 ' -- User-defined constants
     SER_BAUD    = 115_200
-    LED         = cfg#LED1
+    LED         = cfg.LED1
 
     SCL_PIN     = 28
     SDA_PIN     = 29
@@ -27,46 +31,50 @@ CON
 
     DAT_COL     = 5
 
+
 OBJ
 
-    cfg     : "boardcfg.flip"
-    ser     : "com.serial.terminal.ansi"
-    time    : "time"
-    vcnl    : "sensor.light.vcnl4200"
+    cfg:    "boardcfg.flip"
+    time:   "time"
+    ser:    "com.serial.terminal.ansi"
+    sensor: "sensor.light.vcnl4200"
+
 
 VAR
 
     long _isr_stack[50], _interrupt
 
-PUB main{}
 
-    setup{}
+PUB main()
 
-    vcnl.preset_als{}                           ' set to ambient light sensing mode
+    setup()
+
+    sensor.preset_als()                           ' set to ambient light sensing mode
 
     { enable interrupts and set low and high thresholds }
-    vcnl.als_int_ena(TRUE)
-    vcnl.int_clear{}
-    vcnl.als_int_set_lo_thresh(55_000)          ' units: milli-lux (1_000 = 0.001 lx)
-    vcnl.als_int_set_hi_thresh(75_000)          '
+    sensor.als_int_ena(TRUE)
+    sensor.int_clear()
+    sensor.als_int_set_lo_thresh(55_000)          ' units: milli-lux (1_000 = 0.001 lx)
+    sensor.als_int_set_hi_thresh(75_000)          '
 
     ser.pos_xy(0, 3)
-    ser.printf2(string("Thresh  low: %d high: %d"), vcnl.als_int_lo_thresh{}, {
-}                                                   vcnl.als_int_hi_thresh{})
+    ser.printf2(string("Thresh  low: %d high: %d"), sensor.als_int_lo_thresh(), ...
+                                                    sensor.als_int_hi_thresh() )
 
     repeat
         ser.pos_xy(0, 5)
         ser.str(string("Lux: "))
         ser.pos_xy(DAT_COL, 5)
-        ser.dec(vcnl.lux{})
+        ser.dec(sensor.lux())
         if (_interrupt)
             ser.str(string("   INTERRUPT (press c to clear)"))
 
-        ser.clear_line{}
-        if (ser.rx_check{} == "c")
-            vcnl.int_clear{}
+        ser.clear_line()
+        if (ser.rx_check() == "c")
+            sensor.int_clear()
 
-PUB cog_isr{}
+
+PUB cog_isr()
 ' Interrupt service routine
     dira[INT_PIN] := 0
     dira[LED] := 1
@@ -79,24 +87,26 @@ PUB cog_isr{}
             outa[LED] := 0
             _interrupt := FALSE
 
-PUB setup{}
+
+PUB setup()
 
     ser.start(SER_BAUD)
     time.msleep(30)
-    ser.clear{}
+    ser.clear()
     ser.strln(string("Serial terminal started"))
 
-    if vcnl.startx(SCL_PIN, SDA_PIN, I2C_FREQ)
+    if sensor.startx(SCL_PIN, SDA_PIN, I2C_FREQ)
         ser.strln(string("VCNL4200 driver started"))
     else
         ser.strln(string("VCNL4200 driver failed to start - halting"))
         repeat
 
-    cognew(cog_isr{}, @_isr_stack)              ' start the ISR in another cog
+    cognew(cog_isr(), @_isr_stack)              ' start the ISR in another cog
+
 
 DAT
 {
-Copyright 2022 Jesse Burt
+Copyright 2024 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

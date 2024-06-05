@@ -1,14 +1,12 @@
 {
-    --------------------------------------------
-    Filename: sensor.range.vcnl4200.spin2
-    Author: Jesse Burt
-    Description: Driver for the Vishay VCNL4200
-        Proximity and Ambient Light sensor (P2 version)
-    Copyright (c) 2022
-    Started Feb 10, 2021
-    Updated Dec 3, 2022
-    See end of file for terms of use.
-    --------------------------------------------
+----------------------------------------------------------------------------------------------------
+    Filename:       sensor.range.vcnl4200.spin2
+    Description:    Driver for the Vishay VCNL4200 Proximity and Ambient Light sensor
+    Author:         Jesse Burt
+    Started:        Feb 10, 2021
+    Updated:        Jun 5, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
 
 CON
@@ -42,48 +40,55 @@ CON
     INT_NEAR        = 1
     INT_FAR         = (1 << 1)
 
+
 VAR
 
     long _als_res
 
+
 OBJ
 
-    i2c : "com.i2c"                             ' PASM I2C engine
-    core: "core.con.vcnl4200"                   ' hw-specific low-level const's
+    i2c:    "com.i2c"                           ' PASM I2C engine
+    core:   "core.con.vcnl4200"                 ' hw-specific low-level const's
+
 
 PUB null()
 ' This is not a top-level object
 
+
 PUB startx(SCL_PIN, SDA_PIN, I2C_HZ=DEF_HZ): status
 ' Start using custom IO pins and I2C bus frequency
-    if lookdown(SCL_PIN: 0..63) and lookdown(SDA_PIN: 0..63) and {
-}   I2C_HZ <= core.I2C_MAX_FREQ                 ' validate pins and bus freq
+    if ( lookdown(SCL_PIN: 0..63) and lookdown(SDA_PIN: 0..63) )
         if (status := i2c.init(SCL_PIN, SDA_PIN, I2C_HZ))
             waitus(core.T_POR)                  ' wait for device startup
             i2c.start()                         ' reset a possibly "hung up"
             i2c.write($ff)                      '   bus
             i2c.start()
             i2c.stop()
-            if (dev_id() == core.DEVID_RESP)    ' validate device 
+            if ( dev_id() == core.DEVID_RESP )  ' validate device 
                 return
     ' if this point is reached, something above failed
     ' Re-check I/O pin assignments, bus speed, connections, power
     ' Lastly - make sure you have at least one free core/cog 
     return FALSE
 
+
 PUB stop()
 ' Stop the driver
     i2c.deinit()
     _als_res := 0
 
+
 PUB defaults()
 ' Set factory defaults
     als_data_rate(20)
+
 
 PUB preset_als()
 ' ALS operating mode, 20Hz data rate
     opmode(ALS)
     als_data_rate(20)
+
 
 PUB preset_als_prox()
 ' ALS and Proximity sensor operating mode
@@ -93,11 +98,13 @@ PUB preset_als_prox()
     als_data_rate(20)
     prox_integr_time(1)
 
+
 PUB preset_prox()
 ' Proximity sensor operating mode
 '   * Proximity sensor integration time 1T
     opmode(PROX)
     prox_integr_time(1)
+
 
 PUB preset_prox_long_range()
 ' Proximity sensor operating mode
@@ -106,10 +113,12 @@ PUB preset_prox_long_range()
     prox_integr_time(9)
     prox_adc_res(16)
 
+
 PUB als_data(): als_adc
 ' Read Ambient Light Sensor data
 '   Returns: u16
     readreg(core.ALS_DATA, 2, @als_adc)
+
 
 PUB als_data_rate(rate=-2): curr_rate
 ' Set ALS data rate, in Hz
@@ -129,19 +138,22 @@ PUB als_data_rate(rate=-2): curr_rate
     rate := ((curr_rate & core.ALS_IT_MASK) | rate)
     writereg(core.ALS_CONF, 2, @rate)
 
+
 PUB als_int_hi_thresh(): thresh
 ' Get ALS interrupt high threshold
 '   Returns: milli-lux
     thresh := 0
-    readreg(core#ALS_THDH, 2, @thresh)
+    readreg(core.ALS_THDH, 2, @thresh)
     thresh *= _als_res
+
 
 PUB als_int_lo_thresh(): thresh
 ' Get ALS interrupt low threshold
 '   Returns: milli-lux
     thresh := 0
-    readreg(core#ALS_THDL, 2, @thresh)
+    readreg(core.ALS_THDL, 2, @thresh)
     thresh *= _als_res
+
 
 PUB als_int_set_hi_thresh(thresh)
 ' Set ALS interrupt high threshold, in milli-lux
@@ -157,7 +169,8 @@ PUB als_int_set_hi_thresh(thresh)
             thresh := 0 #> thresh <# 196_605
 
     thresh /= _als_res
-    writereg(core#ALS_THDH, 2, @thresh)
+    writereg(core.ALS_THDH, 2, @thresh)
+
 
 PUB als_int_set_lo_thresh(thresh)
 ' Set ALS interrupt low threshold, in milli-lux
@@ -173,7 +186,8 @@ PUB als_int_set_lo_thresh(thresh)
             thresh := 0 #> thresh <# 196_605
 
     thresh /= _als_res
-    writereg(core#ALS_THDL, 2, @thresh)
+    writereg(core.ALS_THDL, 2, @thresh)
+
 
 PUB als_int_duration(cycles=-2): curr_cyc
 ' Set number of cycles beyond threshold needed to generate an ALS interrupt
@@ -191,6 +205,7 @@ PUB als_int_duration(cycles=-2): curr_cyc
     cycles := ((curr_cyc & core.ALS_PERS_MASK) | cycles)
     writereg(core.ALS_CONF, 2, @cycles)
 
+
 PUB als_int_ena(state=-2): curr_state
 ' Enable ALS interrupts
 '   Valid values: TRUE (-1 or 1), FALSE (0) (default: FALSE)
@@ -205,14 +220,17 @@ PUB als_int_ena(state=-2): curr_state
     state := ((curr_state & core.ALS_INT_EN_MASK) | state)
     writereg(core.ALS_CONF, 2, @state)
 
+
 PUB dev_id(): id
 ' Read device identification
     id := 0
     readreg(core.DEVID, 2, @id)
 
+
 PUB int_clear()
 ' Clear interrupts
     interrupt()                                 ' simply reading interrupt flags clears them
+
 
 PUB interrupt(): src
 ' Read interrupt flags
@@ -225,6 +243,7 @@ PUB interrupt(): src
     src := 0
     readreg(core.INT_FLAG, 2, @src)
     src >>= 8
+
 
 PUB ired_current(led_i=-2): curr_i
 ' Set IRED drive current, in milliamperes
@@ -239,6 +258,7 @@ PUB ired_current(led_i=-2): curr_i
             return lookupz(curr_i: 50, 75, 100, 120, 140, 160, 180, 200)
     led_i := ((curr_i & core.LED_I_MASK) | led_i)
     writereg(core.PS_CONF3, 2, @led_i)
+
 
 PUB ired_duty_cycle(ratio=-2): curr_rat
 ' Set IRED duty cycle, as a ratio of 1 / ...
@@ -255,9 +275,11 @@ PUB ired_duty_cycle(ratio=-2): curr_rat
     ratio := ((curr_rat & core.PS_DUTY_MASK) | ratio)
     writereg(core.PS_CONF1, 2, @ratio)
 
+
 PUB lux(): mlx
 ' Read ALS sensor data, calculated in milli-lux
     return (als_data() * _als_res)
+
 
 PUB opmode(mode=-2): curr_mode | alsconf, psconf
 ' Set operating mode
@@ -290,6 +312,7 @@ PUB opmode(mode=-2): curr_mode | alsconf, psconf
     writereg(core.ALS_CONF, 2, @alsconf)
     writereg(core.PS_CONF1, 2, @psconf)
 
+
 PUB prox_adc_res(adc_res=-2): curr_res
 ' Set proximity sensor ADC resolution, in bits
 '   Valid values: 12, 16
@@ -305,37 +328,44 @@ PUB prox_adc_res(adc_res=-2): curr_res
     adc_res := ((curr_res & core.PS_HD_MASK) | adc_res)
     writereg(core.PS_CONF1, 2, @adc_res)
 
-PUB prox_bias{}: p
+
+PUB prox_bias(): p
 ' Get currently set proximity sensor bias/offset
     p := 0
     readreg(core.PS_CANC, 2, @p)
+
 
 PUB prox_data(): prox_adc
 ' Read proximity data
 '   Returns: u16
     readreg(core.PS_DATA, 2, @prox_adc)
 
+
 PUB prox_int_hi_thresh(): curr_thr
 ' Get proximity interrupt high threshold
     curr_thr := 0
     readreg(core.PS_THDH, 2, @curr_thr)
+
 
 PUB prox_int_lo_thresh(): curr_thr
 ' Get proximity interrupt low threshold
     curr_thr := 0
     readreg(core.PS_THDL, 2, @curr_thr)
 
+
 PUB prox_int_set_hi_thresh(thresh)
 ' Set proximity interrupt high threshold
 '   Valid values: 0..65535
     thresh := 0 #> thresh <# 65535
-    writereg(core#PS_THDH, 2, @thresh)
+    writereg(core.PS_THDH, 2, @thresh)
+
 
 PUB prox_int_set_lo_thresh(thresh)
 ' Set proximity interrupt low threshold
 '   Valid values: 0..65535
     thresh := 0 #> thresh <# 65535
-    writereg(core#PS_THDL, 2, @thresh)
+    writereg(core.PS_THDL, 2, @thresh)
+
 
 PUB prox_int_mask(mask=-2): curr_mask
 ' Set proximity sensor interrupt mask
@@ -353,6 +383,7 @@ PUB prox_int_mask(mask=-2): curr_mask
     mask := ((curr_mask & core.PS_INT_MASK) | mask)
     writereg(core.PS_CONF1, 2, @mask)
 
+
 PUB prox_int_duration(cycles=-2): curr_cyc
 ' Set number of cycles beyond threshold needed to generate a proximity interrupt
 '   Valid values: 1, 2, 3, 4 (default: 1)
@@ -366,6 +397,7 @@ PUB prox_int_duration(cycles=-2): curr_cyc
 
     cycles := ((curr_cyc & core.PS_PERS_MASK) | cycles)
     writereg(core.PS_CONF1, 2, @cycles)
+
 
 PUB prox_integr_time(itime=-2): curr_itime
 ' Set Proximity sensor integration time, as a cycle multiplier
@@ -383,14 +415,17 @@ PUB prox_integr_time(itime=-2): curr_itime
     itime := ((curr_itime & core.PS_IT_MASK) | itime)
     writereg(core.PS_CONF1, 2, @itime)
 
+
 PUB prox_set_bias(p)
 ' Set proximity sensor bias/offset
 '   Valid values: 0..65535 (clamped to range; default: 0)
     p := 0 #> p <# 65535
     writereg(core.PS_CANC, 2, @p)
 
+
 PUB reset()
 ' Reset the device
+
 
 PUB sun_cancel_mode(mode=-2): curr_mode
 ' Set sunlight cancellation/immunity mode
@@ -408,11 +443,13 @@ PUB sun_cancel_mode(mode=-2): curr_mode
     mode := ((curr_mode & core.PS_SC_MASK) | mode)
     writereg(core.PS_CONF3, 2, @mode)
 
+
 PUB white_data(): white_adc
 ' Read White light data
     readreg(core.WHITE_DATA, 2, @white_adc)
 
-PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+
+PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 ' Read nr_bytes from the device into ptr_buff
     case reg_nr                                 ' validate register num
         core.ALS_CONF..core.WHITE_DATA, core.INT_FLAG, core.ID:
@@ -427,6 +464,7 @@ PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
     i2c.wr_byte(SLAVE_RD)
     i2c.rdblock_lsbf(ptr_buff, nr_bytes, i2c.NAK)
     i2c.stop()
+
 
 PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 ' Write nr_bytes to the device from ptr_buff
@@ -444,9 +482,10 @@ PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
     i2c.wrblock_lsbf(ptr_buff, nr_bytes)
     i2c.stop()
 
+
 DAT
 {
-Copyright 2022 Jesse Burt
+Copyright 2024 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

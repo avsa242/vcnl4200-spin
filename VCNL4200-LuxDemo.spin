@@ -1,23 +1,23 @@
 {
-    --------------------------------------------
-    Filename: VCNL4200-LuxDemo.spin
-    Author: Jesse Burt
-    Description: VCNL4200 driver demo
+----------------------------------------------------------------------------------------------------
+    Filename:       VCNL4200-LuxDemo.spin
+    Description:    Demo of the VCNL4200 driver
         * Lux data output
-    Copyright (c) 2022
-    Started Jul 23, 2022
-    Updated Oct 16, 2022
-    See end of file for terms of use.
-    --------------------------------------------
-
-    Build-time symbols supported by driver:
-        -DVCNL4200_I2C (default if none specified)
-        -DVCNL4200_I2C_BC
+    Author:         Jesse Burt
+    Started:        Jul 23, 2022
+    Updated:        Jun 5, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
+
+' Uncomment the two lines below to use the bytecode-based I2C engine
+#define VCNL4200_I2C_BC
+#pragma exportdef(VCNL4200_I2C_BC)
+
 CON
 
-    _clkmode    = cfg#_clkmode
-    _xinfreq    = cfg#_xinfreq
+    _clkmode    = cfg._clkmode
+    _xinfreq    = cfg._xinfreq
 
 ' -- User-modifiable constants
     SER_BAUD    = 115_200
@@ -29,18 +29,20 @@ CON
     ADDR_BITS   = 0
 ' --
 
+
 OBJ
 
     cfg:    "boardcfg.flip"
-    sensor:  "sensor.light.vcnl4200"
-    ser:    "com.serial.terminal.ansi"
     time:   "time"
+    ser:    "com.serial.terminal.ansi"
+    sensor: "sensor.light.vcnl4200"
 
-PUB setup{}
+
+PUB setup()
 
     ser.start(SER_BAUD)
-    time.msleep(10)
-    ser.clear{}
+    time.msleep(30)
+    ser.clear()
     ser.strln(string("Serial terminal started"))
 
     if (sensor.startx(SCL_PIN, SDA_PIN, I2C_FREQ))
@@ -49,14 +51,15 @@ PUB setup{}
         ser.strln(string("VCNL4200 driver failed to start - halting"))
         repeat
 
-    sensor.preset_als_prox{}
-    demo{}
+    sensor.preset_als_prox()
+    demo()
 
 #include "luxdemo.common.spinh"                 ' code common to all lux demos
 
+
 DAT
 {
-Copyright 2022 Jesse Burt
+Copyright 2024 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
