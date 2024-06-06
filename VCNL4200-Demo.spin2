@@ -4,37 +4,30 @@
     Description:    Demo of the VCNL4200 driver
     Author:         Jesse Burt
     Started:        Feb 7, 2021
-    Updated:        Jun 5, 2024
+    Updated:        Jun 6, 2024
     Copyright (c) 2024 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
+' MikroE Click adapter board base pin
+#define CLICK_BASE 16
 #include "core.con.click.spin2"
+
 
 CON
 
     _clkfreq    = cfg._clkfreq_def
     _xtlfreq    = cfg._xtlfreq
 
-' -- User-defined constants
-    SER_BAUD    = 2_000_000
-    LED         = cfg.LED1
-
-    { I2C configuration }
-    { custom I/O pin definitions - uncomment the below, and comment out the #include
-        line above to use }
-'    SCL_PIN     = 0
-'    SDA_PIN     = 1
-    CLICK_BASE  = 0                             ' basepin for Click adapter
-    I2C_FREQ    = 400_000                       ' max is 400_000
-' --
-
 
 OBJ
 
     cfg:    "boardcfg.p2eval"
-    ser:    "com.serial.terminal.ansi"
-    sensor: "sensor.light.vcnl4200"
+    ser:    "com.serial.terminal.ansi" | SER_BAUD=2_000_000
+    sensor: "sensor.light.vcnl4200" | SCL=SCL_PIN, SDA=SDA_PIN, I2C_FREQ=400_000
+
+    { use this line instead to use custom I/O pins }
+    'sensor: "sensor.light.vcnl4200" | SCL=0, SDA=1, I2C_FREQ=400_000
 
 
 PUB main() | lux
@@ -53,11 +46,11 @@ PUB main() | lux
 
 PUB setup()
 
-    ser.start(SER_BAUD)
+    ser.start()
     ser.clear()
     ser.strln(@"Serial terminal started")
 
-    if sensor.startx(SCL_PIN, SDA_PIN, I2C_FREQ)
+    if ( sensor.start() )
         ser.strln(@"VCNL4200 driver started")
     else
         ser.strln(@"VCNL4200 driver failed to start - halting")

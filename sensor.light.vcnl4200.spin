@@ -11,13 +11,11 @@
 
 CON
 
-    SLAVE_WR        = core.SLAVE_ADDR
-    SLAVE_RD        = core.SLAVE_ADDR|1
+    { default I/O configuration - these can be overridden by the parent object }
+    SCL             = 28
+    SDA             = 29
+    I2C_FREQ        = 100_000
 
-    DEF_SCL         = 28
-    DEF_SDA         = 29
-    DEF_HZ          = 100_000
-    I2C_MAX_FREQ    = core.I2C_MAX_FREQ
 
 ' Operating modes
     SLEEP           = %00
@@ -43,6 +41,15 @@ CON
     INT_FAR         = (1 << 1)
 
 
+    SLAVE_WR        = core.SLAVE_ADDR
+    SLAVE_RD        = core.SLAVE_ADDR|1
+
+    DEF_SCL         = 28
+    DEF_SDA         = 29
+    DEF_HZ          = 100_000
+    I2C_MAX_FREQ    = core.I2C_MAX_FREQ
+
+
 VAR
 
     long _als_res
@@ -65,8 +72,9 @@ PUB null()
 
 
 PUB start(): status
-' Start using "standard" Propeller I2C pins and 100kHz
-    return startx(DEF_SCL, DEF_SDA, DEF_HZ)
+' Start using default I/O settings
+    return startx(SCL, SDA, I2C_FREQ)
+
 
 PUB startx(SCL_PIN, SDA_PIN, I2C_HZ): status
 ' Start using custom IO pins and I2C bus frequency

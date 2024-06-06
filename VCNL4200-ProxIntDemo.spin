@@ -2,17 +2,17 @@
 ----------------------------------------------------------------------------------------------------
     Filename:       VCNL4200-ProxIntDemo.spin
     Description:    Demo of the VCNL4200 driver
-        Proximity sensor interrupt functionality
+        * Proximity sensor interrupt functionality
     Author:         Jesse Burt
     Started:        Feb 10, 2021
-    Updated:        Jun 5, 2024
+    Updated:        Jun 6, 2024
     Copyright (c) 2024 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
 ' Uncomment the two lines below to use the bytecode-based I2C engine
-#define VCNL4200_I2C_BC
-#pragma exportdef(VCNL4200_I2C_BC)
+'#define VCNL4200_I2C_BC
+'#pragma exportdef(VCNL4200_I2C_BC)
 
 CON
 
@@ -20,12 +20,7 @@ CON
     _xinfreq    = cfg._xinfreq
 
 ' -- User-defined constants
-    SER_BAUD    = 115_200
     LED         = cfg.LED1
-
-    I2C_SCL     = 28
-    I2C_SDA     = 29
-    I2C_FREQ    = 400_000                       ' max is 400_000
     INT_PIN     = 24
 ' --
 
@@ -37,15 +32,13 @@ CON
 
         On the MikroE Click board (Parallax #64211), this is the 5V pin. }
 
-    DAT_COL     = 20
-
 
 OBJ
 
     cfg:    "boardcfg.flip"
     time:   "time"
-    ser:    "com.serial.terminal.ansi"
-    sensor: "sensor.light.vcnl4200"
+    ser:    "com.serial.terminal.ansi" | SER_BAUD=115_200
+    sensor: "sensor.light.vcnl4200" | SCL=28, SDA=29, I2C_FREQ=400_000
 
 
 VAR
@@ -63,25 +56,23 @@ PUB main()
     sensor.int_clear()
     sensor.prox_int_set_lo_thresh(100)
     sensor.prox_int_set_hi_thresh(200)
-    { interrupt mask:
-        INT_NEAR: trigger when proximity < prox_int_set_lo_thresh()
-        INT_FAR: trigger when proximity > prox_int_set_hi_thresh()
+    { interrupt mask (bitwise OR '|' together if desired)
+        INT_NEAR: trigger when proximity > prox_int_set_hi_thresh()
+        INT_FAR: trigger when proximity < prox_int_set_lo_thresh()
     }
     sensor.prox_int_mask(sensor.INT_NEAR)
     ser.pos_xy(0, 3)
-    ser.printf2(string("Thresh  low: %d high: %d"), sensor.prox_int_lo_thresh(), ...
-                                                    sensor.prox_int_hi_thresh() )
+    ser.printf2(@"Thresh  low: %d high: %d",    sensor.prox_int_lo_thresh(), ...
+                                                sensor.prox_int_hi_thresh() )
 
     repeat
         ser.pos_xy(0, 5)
-        ser.str(string("Proximity ADC: "))
-        ser.pos_xy(DAT_COL, 5)
-        ser.dec(sensor.prox_data())
-        if (_interrupt)
-            ser.str(string("   INTERRUPT (press c to clear)"))
+        ser.printf1(@"Proximity ADC: %5.5d", sensor.prox_data())
+        if ( _interrupt )
+            ser.str(@"   INTERRUPT (press c to clear)")
 
         ser.clear_line()
-        if (ser.rx_check() == "c")
+        if ( ser.getchar_noblock() == "c" )
             sensor.int_clear()
 
 
@@ -91,25 +82,25 @@ PUB cog_isr()
     dira[LED] := 1
 
     repeat
-        if (ina[INT_PIN] == 0)                  ' interrupt is active low
-            outa[LED] := 1
-            _interrupt := TRUE
-        else
-            outa[LED] := 0
-            _interrupt := FALSE
+        waitpne(|< INT_PIN, |< INT_PIN, 0)      ' wait for interrupt (active low)
+        outa[LED] := 1
+        _interrupt := TRUE
+        waitpeq(|< INT_PIN, |< INT_PIN, 0)      ' wait for interrupt to clear
+        outa[LED] := 0
+        _interrupt := FALSE
 
 
 PUB setup()
 
-    ser.start(SER_BAUD)
+    ser.start()
     time.msleep(30)
     ser.clear()
-    ser.strln(string("Serial terminal started"))
+    ser.strln(@"Serial terminal started")
 
-    if sensor.startx(I2C_SCL, I2C_SDA, I2C_FREQ)
-        ser.strln(string("VCNL4200 driver started"))
+    if ( sensor.start() )
+        ser.strln(@"VCNL4200 driver started")
     else
-        ser.strln(string("VCNL4200 driver failed to start - halting"))
+        ser.strln(@"VCNL4200 driver failed to start - halting")
         repeat
 
     cognew(cog_isr(), @_isr_stack)              ' start the ISR in another cog

@@ -5,50 +5,40 @@
         * Lux data output
     Author:         Jesse Burt
     Started:        Jul 23, 2022
-    Updated:        Jun 5, 2024
+    Updated:        Jun 6, 2024
     Copyright (c) 2024 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
 ' Uncomment the two lines below to use the bytecode-based I2C engine
-#define VCNL4200_I2C_BC
-#pragma exportdef(VCNL4200_I2C_BC)
+'#define VCNL4200_I2C_BC
+'#pragma exportdef(VCNL4200_I2C_BC)
 
 CON
 
     _clkmode    = cfg._clkmode
     _xinfreq    = cfg._xinfreq
 
-' -- User-modifiable constants
-    SER_BAUD    = 115_200
-
-    { I2C configuration }
-    SCL_PIN     = 28
-    SDA_PIN     = 29
-    I2C_FREQ    = 400_000                       ' max is 400_000
-    ADDR_BITS   = 0
-' --
-
 
 OBJ
 
     cfg:    "boardcfg.flip"
     time:   "time"
-    ser:    "com.serial.terminal.ansi"
-    sensor: "sensor.light.vcnl4200"
+    ser:    "com.serial.terminal.ansi" | SER_BAUD=115_200
+    sensor: "sensor.light.vcnl4200" | SCL=28, SDA=29, I2C_FREQ=400_000
 
 
 PUB setup()
 
-    ser.start(SER_BAUD)
+    ser.start()
     time.msleep(30)
     ser.clear()
-    ser.strln(string("Serial terminal started"))
+    ser.strln(@"Serial terminal started")
 
-    if (sensor.startx(SCL_PIN, SDA_PIN, I2C_FREQ))
-        ser.strln(string("VCNL4200 driver started"))
+    if ( sensor.start() )
+        ser.strln(@"VCNL4200 driver started")
     else
-        ser.strln(string("VCNL4200 driver failed to start - halting"))
+        ser.strln(@"VCNL4200 driver failed to start - halting")
         repeat
 
     sensor.preset_als_prox()
