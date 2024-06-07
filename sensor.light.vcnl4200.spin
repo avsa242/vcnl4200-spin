@@ -140,7 +140,7 @@ PUB als_data(): als_adc
     readreg(core.ALS_DATA, 2, @als_adc)
 
 
-PUB als_data_rate(rate): curr_rate
+PUB als_data_rate(rate=-2): curr_rate
 ' Set ALS data rate, in Hz
 '   Valid values: 2_5 (2.5), 5, 10, 20 (default: 20)
 '   Any other value polls the chip and returns the current setting
@@ -208,7 +208,7 @@ PUB als_int_set_lo_thresh(thresh)
     writereg(core.ALS_THDL, 2, @thresh)
 
 
-PUB als_int_duration(cycles): curr_cyc
+PUB als_int_duration(cycles=-2): curr_cyc
 ' Set number of cycles beyond threshold needed to generate an ALS interrupt
 '   Valid values:
 '      1, 2, 4, 8 (default: 1)
@@ -224,7 +224,7 @@ PUB als_int_duration(cycles): curr_cyc
             return lookupz(curr_cyc: 1, 2, 4, 8)
 
 
-PUB als_int_ena(state): curr_state
+PUB als_int_ena(state=-2): curr_state
 ' Enable ALS interrupts
 '   Valid values: TRUE (-1 or 1), FALSE (0) (default: FALSE)
 '   Any other value polls the chip and returns the current setting
@@ -262,7 +262,7 @@ PUB interrupt(): src
     src >>= 8
 
 
-PUB ired_current(led_i): curr_i
+PUB ired_current(led_i=-2): curr_i
 ' Set IRED drive current, in milliamperes
 '   Valid values: 50, 75, 100, 120, 140, 160, 180, 200
 '   Any other value polls the chip and returns the current setting
@@ -277,7 +277,7 @@ PUB ired_current(led_i): curr_i
             return lookupz(curr_i: 50, 75, 100, 120, 140, 160, 180, 200)
 
 
-PUB ired_duty_cycle(ratio): curr_rat
+PUB ired_duty_cycle(ratio=-2): curr_rat
 ' Set IRED duty cycle, as a ratio of 1 / ...
 '   Valid values: 160, 320, 640, 1280 (default: 160)
 '   Any other value polls the chip and returns the current setting
@@ -297,7 +297,7 @@ PUB lux(): mlx
     return (als_data() * _als_res)
 
 
-PUB opmode(mode): curr_mode | alsconf, psconf
+PUB opmode(mode=-2): curr_mode | alsconf, psconf
 ' Set operating mode
 '   Valid values:
 '       SLEEP (0): Power down both ALS+PROX sensors (default)
@@ -329,7 +329,7 @@ PUB opmode(mode): curr_mode | alsconf, psconf
     writereg(core.PS_CONF1, 2, @psconf)
 
 
-PUB prox_adc_res(adc_res): curr_res
+PUB prox_adc_res(adc_res=-2): curr_res
 ' Set proximity sensor ADC resolution, in bits
 '   Valid values: 12, 16
 '   Any other value polls the chip and returns the current setting
@@ -382,7 +382,7 @@ PUB prox_int_set_lo_thresh(thresh)
     writereg(core.PS_THDL, 2, @thresh)
 
 
-PUB prox_int_mask(mask): curr_mask
+PUB prox_int_mask(mask=-2): curr_mask
 ' Set proximity sensor interrupt mask
 '   Valid values:
 '       Bit 1: (INT_FAR) assert when far
@@ -398,7 +398,7 @@ PUB prox_int_mask(mask): curr_mask
             return ((curr_mask >> core.PS_INT) & core.PS_INT_BITS)
 
 
-PUB prox_int_duration(cycles): curr_cyc
+PUB prox_int_duration(cycles=-2): curr_cyc
 ' Set number of cycles beyond threshold needed to generate a proximity interrupt
 '   Valid values: 1, 2, 3, 4 (default: 1)
 '   Any other value polls the chip and returns the current setting
@@ -412,7 +412,7 @@ PUB prox_int_duration(cycles): curr_cyc
             return (((curr_cyc >> core.PS_PERS) & core.PS_PERS_BITS) + 1)
 
 
-PUB prox_integr_time(itime): curr_itime
+PUB prox_integr_time(itime=-2): curr_itime
 ' Set Proximity sensor integration time, as a cycle multiplier
 '   Valid values: 1, 1_5 (1.5), 2, 4, 8, 9
 '   Any other value polls the chip and returns the current setting
@@ -439,7 +439,7 @@ PUB reset()
 ' Reset the device
 
 
-PUB sun_cancel_mode(mode): curr_mode
+PUB sun_cancel_mode(mode=-2): curr_mode
 ' Set sunlight cancellation/immunity mode
 '   Valid values:
 '       OFF (0): disabled
