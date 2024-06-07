@@ -4,7 +4,7 @@
     Description:    Driver for the Vishay VCNL4200 Proximity and Ambient Light sensor
     Author:         Jesse Burt
     Started:        Feb 7, 2021
-    Updated:        Jun 5, 2024
+    Updated:        Jun 7, 2024
     Copyright (c) 2024 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
@@ -151,12 +151,11 @@ PUB als_data_rate(rate): curr_rate
             rate := lookdownz(rate: 20, 10, 5, 2_5)
             _als_res := lookupz(rate: 0_024, 0_012, 0_006, 0_003)
             rate <<= core.ALS_IT
+            rate := ((curr_rate & core.ALS_IT_MASK) | rate)
+            writereg(core.ALS_CONF, 2, @rate)
         other:
             curr_rate := ((curr_rate >> core.ALS_IT) & core.ALS_IT_BITS)
             return lookupz(curr_rate: 20, 10, 5, 2_5)
-
-    rate := ((curr_rate & core.ALS_IT_MASK) | rate)
-    writereg(core.ALS_CONF, 2, @rate)
 
 
 PUB als_int_hi_thresh(): thresh
@@ -218,12 +217,11 @@ PUB als_int_duration(cycles): curr_cyc
     case cycles
         1, 2, 4, 8:
             cycles := lookdownz(cycles: 1, 2, 4, 8) << core.ALS_PERS
+            cycles := ((curr_cyc & core.ALS_PERS_MASK) | cycles)
+            writereg(core.ALS_CONF, 2, @cycles)
         other:
             curr_cyc := ((curr_cyc >> core.ALS_PERS) & core.ALS_PERS_BITS)
             return lookupz(curr_cyc: 1, 2, 4, 8)
-
-    cycles := ((curr_cyc & core.ALS_PERS_MASK) | cycles)
-    writereg(core.ALS_CONF, 2, @cycles)
 
 
 PUB als_int_ena(state): curr_state
@@ -234,11 +232,10 @@ PUB als_int_ena(state): curr_state
     case ||(state)
         0, 1:
             state := ((||(state) << core.ALS_INT_EN))
+            state := ((curr_state & core.ALS_INT_EN_MASK) | state)
+            writereg(core.ALS_CONF, 2, @state)
         other:
             return (((curr_state >> core.ALS_INT_EN) & 1) == 1)
-
-    state := ((curr_state & core.ALS_INT_EN_MASK) | state)
-    writereg(core.ALS_CONF, 2, @state)
 
 
 PUB dev_id(): id
@@ -273,11 +270,11 @@ PUB ired_current(led_i): curr_i
     case led_i
         50, 75, 100, 120, 140, 160, 180, 200:
             led_i := lookdownz(led_i: 50, 75, 100, 120, 140, 160, 180, 200) << core.LED_I
+            led_i := ((curr_i & core.LED_I_MASK) | led_i)
+            writereg(core.PS_CONF3, 2, @led_i)
         other:
             curr_i := ((curr_i >> core.LED_I) & core.LED_I_BITS)
             return lookupz(curr_i: 50, 75, 100, 120, 140, 160, 180, 200)
-    led_i := ((curr_i & core.LED_I_MASK) | led_i)
-    writereg(core.PS_CONF3, 2, @led_i)
 
 
 PUB ired_duty_cycle(ratio): curr_rat
@@ -288,12 +285,11 @@ PUB ired_duty_cycle(ratio): curr_rat
     case ratio
         160, 320, 640, 1280:
             ratio := lookdownz(ratio: 160, 320, 640, 1280) << core.PS_DUTY
+            ratio := ((curr_rat & core.PS_DUTY_MASK) | ratio)
+            writereg(core.PS_CONF1, 2, @ratio)
         other:
             curr_rat := ((curr_rat >> core.PS_DUTY) & core.PS_DUTY_BITS)
             return lookupz(curr_rat: 160, 320, 640, 1280)
-
-    ratio := ((curr_rat & core.PS_DUTY_MASK) | ratio)
-    writereg(core.PS_CONF1, 2, @ratio)
 
 
 PUB lux(): mlx
@@ -341,12 +337,11 @@ PUB prox_adc_res(adc_res): curr_res
     case adc_res
         12, 16:
             adc_res := lookdownz(adc_res: 12, 16) << core.PS_HD
+            adc_res := ((curr_res & core.PS_HD_MASK) | adc_res)
+            writereg(core.PS_CONF1, 2, @adc_res)
         other:
             curr_res := ((curr_res >> core.PS_HD) & 1)
             return lookupz(curr_res: 12, 16)
-
-    adc_res := ((curr_res & core.PS_HD_MASK) | adc_res)
-    writereg(core.PS_CONF1, 2, @adc_res)
 
 
 PUB prox_bias(): p
@@ -397,11 +392,10 @@ PUB prox_int_mask(mask): curr_mask
     case mask
         %00..%11:
             mask <<= core.PS_INT
+            mask := ((curr_mask & core.PS_INT_MASK) | mask)
+            writereg(core.PS_CONF1, 2, @mask)
         other:
             return ((curr_mask >> core.PS_INT) & core.PS_INT_BITS)
-
-    mask := ((curr_mask & core.PS_INT_MASK) | mask)
-    writereg(core.PS_CONF1, 2, @mask)
 
 
 PUB prox_int_duration(cycles): curr_cyc
@@ -412,11 +406,10 @@ PUB prox_int_duration(cycles): curr_cyc
     case cycles
         1..4:
             cycles := (cycles-1) << core.PS_PERS
+            cycles := ((curr_cyc & core.PS_PERS_MASK) | cycles)
+            writereg(core.PS_CONF1, 2, @cycles)
         other:
             return (((curr_cyc >> core.PS_PERS) & core.PS_PERS_BITS) + 1)
-
-    cycles := ((curr_cyc & core.PS_PERS_MASK) | cycles)
-    writereg(core.PS_CONF1, 2, @cycles)
 
 
 PUB prox_integr_time(itime): curr_itime
@@ -428,12 +421,11 @@ PUB prox_integr_time(itime): curr_itime
     case itime
         1, 1_5, 2, 4, 8, 9:
             itime := lookdownz(itime: 1, 1_5, 2, 4, 8, 9) << core.PS_IT
+            itime := ((curr_itime & core.PS_IT_MASK) | itime)
+            writereg(core.PS_CONF1, 2, @itime)
         other:
             curr_itime := ((curr_itime >> core.PS_IT) & core.PS_IT_BITS)
             return lookupz(itime: 1, 1_5, 2, 4, 8, 9)
-
-    itime := ((curr_itime & core.PS_IT_MASK) | itime)
-    writereg(core.PS_CONF1, 2, @itime)
 
 
 PUB prox_set_bias(p)
@@ -456,12 +448,11 @@ PUB sun_cancel_mode(mode): curr_mode
     readreg(core.PS_CONF3, 2, @curr_mode)
     case mode
         OFF, NORM, HIGH:
+            mode := ((curr_mode & core.PS_SC_MASK) | mode)
+            writereg(core.PS_CONF3, 2, @mode)
         other:
             curr_mode := (curr_mode & core.PS_SC_BITS)
             return lookupz(curr_mode & core.PS_SC_BITS: OFF, NORM, OFF, HIGH)
-
-    mode := ((curr_mode & core.PS_SC_MASK) | mode)
-    writereg(core.PS_CONF3, 2, @mode)
 
 
 PUB white_data(): white_adc
@@ -473,17 +464,16 @@ PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 ' Read nr_bytes from the device into ptr_buff
     case reg_nr                                 ' validate register num
         core.ALS_CONF..core.WHITE_DATA, core.INT_FLAG, core.ID:
+            cmd_pkt.byte[0] := SLAVE_WR
+            cmd_pkt.byte[1] := reg_nr
+            i2c.start()
+            i2c.wrblock_lsbf(@cmd_pkt, 2)
+            i2c.start()
+            i2c.wr_byte(SLAVE_RD)
+            i2c.rdblock_lsbf(ptr_buff, nr_bytes, i2c.NAK)
+            i2c.stop()
         other:                                  ' invalid reg_nr
             return
-
-    cmd_pkt.byte[0] := SLAVE_WR
-    cmd_pkt.byte[1] := reg_nr
-    i2c.start()
-    i2c.wrblock_lsbf(@cmd_pkt, 2)
-    i2c.start()
-    i2c.wr_byte(SLAVE_RD)
-    i2c.rdblock_lsbf(ptr_buff, nr_bytes, i2c.NAK)
-    i2c.stop()
 
 
 PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
