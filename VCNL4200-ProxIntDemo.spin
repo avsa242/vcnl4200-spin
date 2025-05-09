@@ -5,8 +5,8 @@
         * Proximity sensor interrupt functionality
     Author:         Jesse Burt
     Started:        Feb 10, 2021
-    Updated:        Jun 6, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        May 9, 2025
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
@@ -16,8 +16,8 @@
 
 CON
 
-    _clkmode    = cfg._clkmode
-    _xinfreq    = cfg._xinfreq
+    _clkmode    = xtal1+pll16x
+    _xinfreq    = 5_000_000
 
 ' -- User-defined constants
     LED         = cfg.LED1
@@ -35,7 +35,6 @@ CON
 
 OBJ
 
-    cfg:    "boardcfg.flip"
     time:   "time"
     ser:    "com.serial.terminal.ansi" | SER_BAUD=115_200
     sensor: "sensor.light.vcnl4200" | SCL=28, SDA=29, I2C_FREQ=400_000
@@ -50,7 +49,7 @@ PUB main()
 
     setup()
 
-    sensor.preset_prox_long_range()               ' set to proximity sensor mode
+    sensor.preset_prox_long_range()             ' set to proximity sensor mode
 
     { clear interrupts, and set low and high thresholds }
     sensor.int_clear()
@@ -62,12 +61,12 @@ PUB main()
     }
     sensor.prox_int_mask(sensor.INT_NEAR)
     ser.pos_xy(0, 3)
-    ser.printf2(@"Thresh  low: %d high: %d",    sensor.prox_int_lo_thresh(), ...
+    ser.printf(@"Thresh  low: %d high: %d",    sensor.prox_int_lo_thresh(), ...
                                                 sensor.prox_int_hi_thresh() )
 
     repeat
         ser.pos_xy(0, 5)
-        ser.printf1(@"Proximity ADC: %5.5d", sensor.prox_data())
+        ser.printf(@"Proximity ADC: %5.5d", sensor.prox_data() )
         if ( _interrupt )
             ser.str(@"   INTERRUPT (press c to clear)")
 
@@ -108,7 +107,7 @@ PUB setup()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

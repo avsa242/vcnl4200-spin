@@ -5,22 +5,22 @@
         * Proximity sensor interrupt functionality
     Author:         Jesse Burt
     Started:        Feb 10, 2021
-    Updated:        Jun 6, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        May 9, 2025
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
 ' MikroE Click adapter board base pin
-#define CLICK_BASE 16
+#define CLICK_BASE 0
 #include "core.con.click.spin2"
 
 CON
 
-    _clkfreq    = cfg._clkfreq_def
-    _xtlfreq    = cfg._xtlfreq
+    _clkfreq    = 180_000_000
+    _xtlfreq    = 20_000_000
 
 ' -- User-defined constants
-    LED         = cfg.LED1
+    LED         = 56
     'INT_PIN     = 2                            ' comment out #include above to use
 ' --
 
@@ -34,7 +34,6 @@ CON
 
 OBJ
 
-    cfg:    "boardcfg.p2eval"
     ser:    "com.serial.terminal.ansi" | SER_BAUD=2_000_000
     sensor: "sensor.light.vcnl4200" | SCL=SCL_PIN, SDA=SDA_PIN, I2C_FREQ=400_000
 
@@ -50,7 +49,7 @@ PUB main()
 
     setup()
 
-    sensor.preset_prox_long_range()               ' set to proximity sensor mode
+    sensor.preset_prox_long_range()             ' set to proximity sensor mode
 
     { clear interrupts, and set low and high thresholds }
     sensor.int_clear()
@@ -67,7 +66,7 @@ PUB main()
 
     repeat
         ser.pos_xy(0, 5)
-        ser.printf(@"Proximity ADC: %5.5d", sensor.prox_data())
+        ser.printf(@"Proximity ADC: %5.5d", sensor.prox_data() )
         if ( _interrupt )
             ser.str(@"   INTERRUPT (press c to clear)")
 
@@ -107,7 +106,7 @@ PUB setup()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

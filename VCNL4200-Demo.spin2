@@ -4,25 +4,24 @@
     Description:    Demo of the VCNL4200 driver
     Author:         Jesse Burt
     Started:        Feb 7, 2021
-    Updated:        Jun 6, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        May 9, 2025
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
 ' MikroE Click adapter board base pin
-#define CLICK_BASE 16
+#define CLICK_BASE 0
 #include "core.con.click.spin2"
 
 
 CON
 
-    _clkfreq    = cfg._clkfreq_def
-    _xtlfreq    = cfg._xtlfreq
+    _clkfreq    = 180_000_000
+    _xtlfreq    = 20_000_000
 
 
 OBJ
 
-    cfg:    "boardcfg.p2eval"
     ser:    "com.serial.terminal.ansi" | SER_BAUD=2_000_000
     sensor: "sensor.light.vcnl4200" | SCL=SCL_PIN, SDA=SDA_PIN, I2C_FREQ=400_000
 
@@ -34,12 +33,12 @@ PUB main() | lux
 
     setup()
 
-    sensor.preset_als_prox()                      ' set to combined ALS and proximity mode
+    sensor.preset_als_prox()                    ' set to combined ALS and proximity mode
 
     repeat
         lux := sensor.lux()
         ser.pos_xy(0, 3)
-        ser.printf(@"Lux: %d.%03.3d     \n\r", (lux / 1000), (lux // 1000))
+        ser.printf(@"Lux: %d.%03.3d\n\r", (lux / 1000), (lux // 1000))
         ser.printf(@"White ADC: %04.4x\n\r", sensor.white_data())
         ser.printf(@"Proximity ADC: %04.4x\n\r", sensor.prox_data())
 
@@ -59,7 +58,7 @@ PUB setup()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

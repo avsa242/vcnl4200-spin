@@ -5,8 +5,8 @@
         * ALS sensor interrupt functionality
     Author:         Jesse Burt
     Started:        Feb 10, 2021
-    Updated:        Jun 6, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        May 9, 2025
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
@@ -16,8 +16,8 @@
 
 CON
 
-    _clkmode    = cfg._clkmode
-    _xinfreq    = cfg._xinfreq
+    _clkmode    = xtal1+pll16x
+    _xinfreq    = 5_000_000
 
 ' -- User-defined constants
     LED         = cfg.LED1
@@ -27,7 +27,6 @@ CON
 
 OBJ
 
-    cfg:    "boardcfg.flip"
     time:   "time"
     ser:    "com.serial.terminal.ansi" | SER_BAUD=115_200
     sensor: "sensor.light.vcnl4200" | SCL=28, SDA=29, I2C_FREQ=400_000
@@ -42,26 +41,26 @@ PUB main()
 
     setup()
 
-    sensor.preset_als()                           ' set to ambient light sensing mode
+    sensor.preset_als()                         ' set to ambient light sensing mode
 
     { enable interrupts and set low and high thresholds }
     sensor.als_int_ena(TRUE)
     sensor.int_clear()
-    sensor.als_int_set_lo_thresh(55_000)          ' units: milli-lux (1_000 = 0.001 lx)
-    sensor.als_int_set_hi_thresh(75_000)          '
+    sensor.als_int_set_lo_thresh(55_000)        ' units: milli-lux (1 = 0.001lx, 1_000 = 1.000 lx)
+    sensor.als_int_set_hi_thresh(75_000)        '
 
     ser.pos_xy(0, 3)
-    ser.printf2(@"Thresh  low: %d high: %d",    sensor.als_int_lo_thresh(), ...
-                                                sensor.als_int_hi_thresh() )
+    ser.printf(@"Thresh  low: %d high: %d", sensor.als_int_lo_thresh(), ...
+                                            sensor.als_int_hi_thresh() )
 
     repeat
         ser.pos_xy(0, 5)
-        ser.printf1(@"Lux: %6.6d", sensor.lux())
+        ser.printf(@"Lux: %d.%03.3d", (sensor.lux() / 1_000), (sensor.lux() // 1_000) )
         if ( _interrupt )
             ser.str(@"   INTERRUPT (press c to clear)")
 
         ser.clear_line()
-        if ( ser.rx_check() == "c" )
+        if ( ser.getchar_noblock() == "c" )
             sensor.int_clear()
 
 
@@ -97,7 +96,7 @@ PUB setup()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

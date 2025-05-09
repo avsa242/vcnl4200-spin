@@ -4,8 +4,8 @@
     Description:    Demo of the VCNL4200 driver
     Author:         Jesse Burt
     Started:        Feb 7, 2021
-    Updated:        Jun 6, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        May 9, 2025
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
@@ -15,13 +15,12 @@
 
 CON
 
-    _clkmode    = cfg._clkmode
-    _xinfreq    = cfg._xinfreq
+    _clkmode    = xtal1+pll16x
+    _xinfreq    = 5_000_000
 
 
 OBJ
 
-    cfg:    "boardcfg.flip"
     time:   "time"
     ser:    "com.serial.terminal.ansi" | SER_BAUD=115_200
     sensor: "sensor.light.vcnl4200" | SCL=28, SDA=29, I2C_FREQ=400_000
@@ -31,14 +30,14 @@ PUB main() | lux
 
     setup()
 
-    sensor.preset_als_prox()                      ' set to combined ALS and proximity mode
+    sensor.preset_als_prox()                    ' set to combined ALS and proximity mode
 
     repeat
         lux := sensor.lux()
         ser.pos_xy(0, 3)
-        ser.printf2(@"Lux: %d.%03.3d     \n\r", (lux / 1000), (lux // 1000))
-        ser.printf1(@"White ADC: %04.4x\n\r", sensor.white_data())
-        ser.printf1(@"Proximity ADC: %04.4x\n\r", sensor.prox_data())
+        ser.printf(@"Lux: %d.%03.3d\n\r", (lux / 1000), (lux // 1000))
+        ser.printf(@"White ADC: %04.4x\n\r", sensor.white_data())
+        ser.printf(@"Proximity ADC: %04.4x\n\r", sensor.prox_data())
 
 
 PUB setup()
@@ -57,7 +56,7 @@ PUB setup()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
