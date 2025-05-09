@@ -4,8 +4,8 @@
     Description:    Driver for the Vishay VCNL4200 Proximity and Ambient Light sensor
     Author:         Jesse Burt
     Started:        Feb 10, 2021
-    Updated:        Jun 7, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        May 9, 2025
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
@@ -129,7 +129,7 @@ PUB preset_prox_long_range()
 PUB als_data(): als_adc
 ' Read Ambient Light Sensor data
 '   Returns: u16
-    readreg(core.ALS_DATA, 2, @als_adc)
+    return readreg(core.ALS_DATA)
 
 
 PUB als_data_rate(rate=-2): curr_rate
@@ -137,14 +137,14 @@ PUB als_data_rate(rate=-2): curr_rate
 '   Valid values: 2_5 (2.5), 5, 10, 20 (default: 20)
 '   Any other value polls the chip and returns the current setting
 '   NOTE: This affects both als_data() and white_data() output
-    readreg(core.ALS_CONF, 2, @curr_rate)
+    curr_rate := readreg(core.ALS_CONF)
     case rate
         2_5, 5, 10, 20:
             rate := lookdownz(rate: 20, 10, 5, 2_5)
             _als_res := lookupz(rate: 0_024, 0_012, 0_006, 0_003)
             rate <<= core.ALS_IT
             rate := ((curr_rate & core.ALS_IT_MASK) | rate)
-            writereg(core.ALS_CONF, 2, @rate)
+            writereg(core.ALS_CONF, rate)
         other:
             curr_rate := ((curr_rate >> core.ALS_IT) & core.ALS_IT_BITS)
             return lookupz(curr_rate: 20, 10, 5, 2_5)
@@ -153,16 +153,14 @@ PUB als_data_rate(rate=-2): curr_rate
 PUB als_int_hi_thresh(): thresh
 ' Get ALS interrupt high threshold
 '   Returns: milli-lux
-    thresh := 0
-    readreg(core.ALS_THDH, 2, @thresh)
+    thresh := readreg(core.ALS_THDH)
     thresh *= _als_res
 
 
 PUB als_int_lo_thresh(): thresh
 ' Get ALS interrupt low threshold
 '   Returns: milli-lux
-    thresh := 0
-    readreg(core.ALS_THDL, 2, @thresh)
+    thresh := readreg(core.ALS_THDL)
     thresh *= _als_res
 
 
@@ -180,7 +178,7 @@ PUB als_int_set_hi_thresh(thresh)
             thresh := 0 #> thresh <# 196_605
 
     thresh /= _als_res
-    writereg(core.ALS_THDH, 2, @thresh)
+    writereg(core.ALS_THDH, thresh)
 
 
 PUB als_int_set_lo_thresh(thresh)
@@ -197,7 +195,7 @@ PUB als_int_set_lo_thresh(thresh)
             thresh := 0 #> thresh <# 196_605
 
     thresh /= _als_res
-    writereg(core.ALS_THDL, 2, @thresh)
+    writereg(core.ALS_THDL, thresh)
 
 
 PUB als_int_duration(cycles=-2): curr_cyc
@@ -205,12 +203,12 @@ PUB als_int_duration(cycles=-2): curr_cyc
 '   Valid values:
 '      1, 2, 4, 8 (default: 1)
 '   Any other value polls the chip and returns the current setting
-    readreg(core.ALS_CONF, 2, @curr_cyc)
+    curr_cyc := readreg(core.ALS_CONF)
     case cycles
         1, 2, 4, 8:
             cycles := lookdownz(cycles: 1, 2, 4, 8) << core.ALS_PERS
             cycles := ((curr_cyc & core.ALS_PERS_MASK) | cycles)
-            writereg(core.ALS_CONF, 2, @cycles)
+            writereg(core.ALS_CONF, cycles)
         other:
             curr_cyc := ((curr_cyc >> core.ALS_PERS) & core.ALS_PERS_BITS)
             return lookupz(curr_cyc: 1, 2, 4, 8)
@@ -220,20 +218,19 @@ PUB als_int_ena(state=-2): curr_state
 ' Enable ALS interrupts
 '   Valid values: TRUE (-1 or 1), FALSE (0) (default: FALSE)
 '   Any other value polls the chip and returns the current setting
-    readreg(core.ALS_CONF, 2, @curr_state)
+    curr_state := readreg(core.ALS_CONF)
     case abs(state)
         0, 1:
             state := ((abs(state) << core.ALS_INT_EN))
             state := ((curr_state & core.ALS_INT_EN_MASK) | state)
-            writereg(core.ALS_CONF, 2, @state)
+            writereg(core.ALS_CONF, state)
         other:
             return (((curr_state >> core.ALS_INT_EN) & 1) == 1)
 
 
 PUB dev_id(): id
 ' Read device identification
-    id := 0
-    readreg(core.DEVID, 2, @id)
+    return readreg(core.DEVID)
 
 
 PUB int_clear()
@@ -249,8 +246,7 @@ PUB interrupt(): src
 '       4: ALS crossing als_int_hi_thresh()
 '       1: close proximity: prox. above prox_int_hi_thresh()
 '       0: far proximity: prox. below prox_int_lo_thresh()
-    src := 0
-    readreg(core.INT_FLAG, 2, @src)
+    src := readreg(core.INT_FLAG)
     src >>= 8
 
 
@@ -258,12 +254,12 @@ PUB ired_current(led_i=-2): curr_i
 ' Set IRED drive current, in milliamperes
 '   Valid values: 50, 75, 100, 120, 140, 160, 180, 200
 '   Any other value polls the chip and returns the current setting
-    readreg(core.PS_CONF3, 2, @curr_i)
+    curr_i := readreg(core.PS_CONF3)
     case led_i
         50, 75, 100, 120, 140, 160, 180, 200:
             led_i := lookdownz(led_i: 50, 75, 100, 120, 140, 160, 180, 200) << core.LED_I
             led_i := ((curr_i & core.LED_I_MASK) | led_i)
-            writereg(core.PS_CONF3, 2, @led_i)
+            writereg(core.PS_CONF3, led_i)
         other:
             curr_i := ((curr_i >> core.LED_I) & core.LED_I_BITS)
             return lookupz(curr_i: 50, 75, 100, 120, 140, 160, 180, 200)
@@ -273,12 +269,12 @@ PUB ired_duty_cycle(ratio=-2): curr_rat
 ' Set IRED duty cycle, as a ratio of 1 / ...
 '   Valid values: 160, 320, 640, 1280 (default: 160)
 '   Any other value polls the chip and returns the current setting
-    readreg(core.PS_CONF1, 2, @curr_rat)
+    curr_rat := readreg(core.PS_CONF1)
     case ratio
         160, 320, 640, 1280:
             ratio := lookdownz(ratio: 160, 320, 640, 1280) << core.PS_DUTY
             ratio := ((curr_rat & core.PS_DUTY_MASK) | ratio)
-            writereg(core.PS_CONF1, 2, @ratio)
+            writereg(core.PS_CONF1, ratio)
         other:
             curr_rat := ((curr_rat >> core.PS_DUTY) & core.PS_DUTY_BITS)
             return lookupz(curr_rat: 160, 320, 640, 1280)
@@ -297,8 +293,8 @@ PUB opmode(mode=-2): curr_mode | alsconf, psconf
 '       PROX (2): Proximity sensor active
 '       BOTH (3): Both sensors active
 '   Any other value polls the chip and returns the current setting
-    readreg(core.ALS_CONF, 2, @alsconf)
-    readreg(core.PS_CONF1, 2, @psconf)
+    alsconf := readreg(core.ALS_CONF)
+    psconf := readreg(core.PS_CONF1)
     case mode
         SLEEP:
             alsconf := (alsconf & core.ALS_SD_MASK) | core.ALS_OFF
@@ -317,20 +313,20 @@ PUB opmode(mode=-2): curr_mode | alsconf, psconf
             ' 1 is more intuitive as "on", so invert the bits before returning:
             return (((psconf & 1) << 1) | (alsconf & 1)) ^ %11
 
-    writereg(core.ALS_CONF, 2, @alsconf)
-    writereg(core.PS_CONF1, 2, @psconf)
+    writereg(core.ALS_CONF, alsconf)
+    writereg(core.PS_CONF1, psconf)
 
 
 PUB prox_adc_res(adc_res=-2): curr_res
 ' Set proximity sensor ADC resolution, in bits
 '   Valid values: 12, 16
 '   Any other value polls the chip and returns the current setting
-    readreg(core.PS_CONF1, 2, @curr_res)
+    curr_res := readreg(core.PS_CONF1)
     case adc_res
         12, 16:
             adc_res := lookdownz(adc_res: 12, 16) << core.PS_HD
             adc_res := ((curr_res & core.PS_HD_MASK) | adc_res)
-            writereg(core.PS_CONF1, 2, @adc_res)
+            writereg(core.PS_CONF1, adc_res)
         other:
             curr_res := ((curr_res >> core.PS_HD) & 1)
             return lookupz(curr_res: 12, 16)
@@ -338,40 +334,37 @@ PUB prox_adc_res(adc_res=-2): curr_res
 
 PUB prox_bias(): p
 ' Get currently set proximity sensor bias/offset
-    p := 0
-    readreg(core.PS_CANC, 2, @p)
+    p := readreg(core.PS_CANC)
 
 
 PUB prox_data(): prox_adc
 ' Read proximity data
 '   Returns: u16
-    readreg(core.PS_DATA, 2, @prox_adc)
+    prox_adc := readreg(core.PS_DATA)
 
 
 PUB prox_int_hi_thresh(): curr_thr
 ' Get proximity interrupt high threshold
-    curr_thr := 0
-    readreg(core.PS_THDH, 2, @curr_thr)
+    curr_thr := readreg(core.PS_THDH)
 
 
 PUB prox_int_lo_thresh(): curr_thr
 ' Get proximity interrupt low threshold
-    curr_thr := 0
-    readreg(core.PS_THDL, 2, @curr_thr)
+    curr_thr := readreg(core.PS_THDL)
 
 
 PUB prox_int_set_hi_thresh(thresh)
 ' Set proximity interrupt high threshold
 '   Valid values: 0..65535
     thresh := 0 #> thresh <# 65535
-    writereg(core.PS_THDH, 2, @thresh)
+    writereg(core.PS_THDH, thresh)
 
 
 PUB prox_int_set_lo_thresh(thresh)
 ' Set proximity interrupt low threshold
 '   Valid values: 0..65535
     thresh := 0 #> thresh <# 65535
-    writereg(core.PS_THDL, 2, @thresh)
+    writereg(core.PS_THDL, thresh)
 
 
 PUB prox_int_mask(mask=-2): curr_mask
@@ -380,12 +373,12 @@ PUB prox_int_mask(mask=-2): curr_mask
 '       Bit 1: (INT_FAR) assert when far
 '           0: (INT_NEAR) assert when near
 '   Any other value polls the chip and returns the current setting
-    readreg(core.PS_CONF1, 2, @curr_mask)
+    curr_mask := readreg(core.PS_CONF1)
     case mask
         %00..%11:
             mask <<= core.PS_INT
             mask := ((curr_mask & core.PS_INT_MASK) | mask)
-            writereg(core.PS_CONF1, 2, @mask)
+            writereg(core.PS_CONF1, mask)
         other:
             return ((curr_mask >> core.PS_INT) & core.PS_INT_BITS)
 
@@ -394,12 +387,12 @@ PUB prox_int_duration(cycles=-2): curr_cyc
 ' Set number of cycles beyond threshold needed to generate a proximity interrupt
 '   Valid values: 1, 2, 3, 4 (default: 1)
 '   Any other value polls the chip and returns the current setting
-    readreg(core.PS_CONF1, 2, @curr_cyc)
+    curr_cyc := readreg(core.PS_CONF1)
     case cycles
         1..4:
             cycles := (cycles-1) << core.PS_PERS
             cycles := ((curr_cyc & core.PS_PERS_MASK) | cycles)
-            writereg(core.PS_CONF1, 2, @cycles)
+            writereg(core.PS_CONF1, cycles)
         other:
             return (((curr_cyc >> core.PS_PERS) & core.PS_PERS_BITS) + 1)
 
@@ -408,13 +401,12 @@ PUB prox_integr_time(itime=-2): curr_itime
 ' Set Proximity sensor integration time, as a cycle multiplier
 '   Valid values: 1, 1_5 (1.5), 2, 4, 8, 9
 '   Any other value polls the chip and returns the current setting
-    curr_itime := 0
-    readreg(core.PS_CONF1, 2, @curr_itime)
+    curr_itime := readreg(core.PS_CONF1)
     case itime
         1, 1_5, 2, 4, 8, 9:
             itime := lookdownz(itime: 1, 1_5, 2, 4, 8, 9) << core.PS_IT
             itime := ((curr_itime & core.PS_IT_MASK) | itime)
-            writereg(core.PS_CONF1, 2, @itime)
+            writereg(core.PS_CONF1, itime)
         other:
             curr_itime := ((curr_itime >> core.PS_IT) & core.PS_IT_BITS)
             return lookupz(itime: 1, 1_5, 2, 4, 8, 9)
@@ -424,7 +416,7 @@ PUB prox_set_bias(p)
 ' Set proximity sensor bias/offset
 '   Valid values: 0..65535 (clamped to range; default: 0)
     p := 0 #> p <# 65535
-    writereg(core.PS_CANC, 2, @p)
+    writereg(core.PS_CANC, p)
 
 
 PUB reset()
@@ -437,11 +429,11 @@ PUB sun_cancel_mode(mode=-2): curr_mode
 '       OFF (0): disabled
 '       NORM (1): typical sunlight immunity
 '       HIGH (3): 2x typical sunlight immunity
-    readreg(core.PS_CONF3, 2, @curr_mode)
+    curr_mode := readreg(core.PS_CONF3)
     case mode
         OFF, NORM, HIGH:
             mode := ((curr_mode & core.PS_SC_MASK) | mode)
-            writereg(core.PS_CONF3, 2, @mode)
+            writereg(core.PS_CONF3, mode)
         other:
             curr_mode := (curr_mode & core.PS_SC_BITS)
             return lookupz(curr_mode & core.PS_SC_BITS: OFF, NORM, OFF, HIGH)
@@ -449,11 +441,13 @@ PUB sun_cancel_mode(mode=-2): curr_mode
 
 PUB white_data(): white_adc
 ' Read White light data
-    readreg(core.WHITE_DATA, 2, @white_adc)
+    white_adc := readreg(core.WHITE_DATA)
 
 
-PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
-' Read nr_bytes from the device into ptr_buff
+PRI readreg(reg_nr, len=2): v | cmd_pkt
+' Read register value
+'   reg_nr: register
+'   len:    length/number of bytes to read (optional; default: 2)
     case reg_nr                                 ' validate register num
         core.ALS_CONF..core.WHITE_DATA, core.INT_FLAG, core.ID:
             cmd_pkt.byte[0] := SLAVE_WR
@@ -462,17 +456,20 @@ PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
             i2c.wrblock_lsbf(@cmd_pkt, 2)
             i2c.start()
             i2c.wr_byte(SLAVE_RD)
-            i2c.rdblock_lsbf(ptr_buff, nr_bytes, i2c.NAK)
+            i2c.rdblock_lsbf(@v, len, i2c.NAK)
             i2c.stop()
         other:                                  ' invalid reg_nr
             return
 
 
-PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
-' Write nr_bytes to the device from ptr_buff
+PRI writereg(reg_nr, val, len=2) | cmd_pkt
+' Write value to register
+'   reg_nr: register
+'   val:    new value to write
+'   len:    length/number of bytes to write (optional; default: 2)
     case reg_nr
         core.ALS_CONF:
-            byte[ptr_buff][1] |= core.IDD_RSVD  ' preserve reserved bit
+            val.byte[1] |= core.IDD_RSVD        ' preserve reserved bit
         core.ALS_THDH..core.PS_THDH:
         other:
             return
@@ -481,13 +478,13 @@ PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
     cmd_pkt.byte[1] := reg_nr
     i2c.start()
     i2c.wrblock_lsbf(@cmd_pkt, 2)
-    i2c.wrblock_lsbf(ptr_buff, nr_bytes)
+    i2c.wrblock_lsbf(@val, len)
     i2c.stop()
 
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

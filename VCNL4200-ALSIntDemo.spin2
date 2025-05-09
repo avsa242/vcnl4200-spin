@@ -11,7 +11,7 @@
 }
 
 ' MikroE Click adapter board base pin
-#define CLICK_BASE 16
+#define CLICK_BASE 0
 #include "core.con.click.spin2"
 
 CON
